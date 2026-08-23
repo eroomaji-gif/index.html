@@ -1979,17 +1979,17 @@
       showToast('สมัครสมาชิกสำเร็จ! กำลังเข้าสู่ระบบ...', 'success');
       transitionToStore();
     }
+
+
+
     // Purchase Item
-    function buyWithCode(code, chatUrl) {
-      // ป้องกันไม่ให้ Event กระโดดไปโดนฟอร์มอื่น
-      event.preventDefault();
-      event.stopPropagation();
-      showToast(`สั่งซื้อสินค้า ${code} กำลังนำทางไปหน้าแชท...`, 'success');
-      setTimeout(() => {
-        window.open(chatUrl, '_blank');
-      }, 1000);
+function buyWithCode(code, chatUrl) {
+    showToast(`สั่งซื้อสินค้า ${code} กำลังนำทางไปหน้าแชท...`, 'success');
+    
+    // เปลี่ยนหน้าไปแชททันที (เปิดในแท็บเดิม ป้องกันการโดนบล็อก Pop-up)
+    window.location.href = chatUrl;
     }
-  </script>
+    
 
 </body>
 
