@@ -1,0 +1,1996 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>เหนียวไก่ตัน - Ultra UI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Kanit', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #090d16;
+      background-image:
+        radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(147, 51, 234, 0.15) 0px, transparent 50%);
+      color: #f8fafc;
+      padding: 30px 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      justify-content: center;
+      overflow-x: hidden;
+    }
+
+    /* Utility Classes */
+    .hidden {
+      display: none !important;
+    }
+
+    /* Animation Classes */
+    .fade-in {
+      animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    .fade-out {
+      animation: fadeOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(15px) scale(0.98);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+
+      to {
+        opacity: 0;
+        transform: translateY(-15px) scale(0.98);
+      }
+    }
+
+    /* Custom Notification Toast */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-left: 4px solid #38bdf8;
+      color: #f8fafc;
+      padding: 14px 20px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 280px;
+      animation: toastIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    .toast.error {
+      border-color: rgba(239, 68, 68, 0.3);
+      border-left-color: #ef4444;
+    }
+
+    .toast.success {
+      border-color: rgba(74, 222, 128, 0.3);
+      border-left-color: #4ade80;
+    }
+
+    @keyframes toastIn {
+      from {
+        opacity: 0;
+        transform: translateX(50px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    /* Auth Container Styles */
+    .auth-card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 24px;
+      padding: 40px 30px;
+      width: 100%;
+      max-width: 420px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .auth-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .auth-header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+
+    .auth-header p {
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.88rem;
+      color: #94a3b8;
+      margin-bottom: 8px;
+    }
+
+    .form-control {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: #f8fafc;
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.25);
+      background: rgba(15, 23, 42, 0.8);
+    }
+
+    .options-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      font-size: 0.85rem;
+    }
+
+    .remember-me {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #94a3b8;
+      cursor: pointer;
+    }
+
+    .remember-me input {
+      accent-color: #0284c7;
+      cursor: pointer;
+    }
+
+    .btn-submit {
+      width: 100%;
+      background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(37, 99, 235, 0.35);
+      transition: all 0.2s ease;
+    }
+
+    .btn-submit:hover {
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+      transform: translateY(-2px);
+    }
+
+    .auth-footer {
+      text-align: center;
+      margin-top: 25px;
+      font-size: 0.88rem;
+      color: #64748b;
+    }
+
+    .auth-footer a {
+      color: #c084fc;
+      text-decoration: none;
+      font-weight: 600;
+      margin-left: 5px;
+      cursor: pointer;
+    }
+
+    .auth-footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Store Section Styles */
+    .header-box {
+      text-align: center;
+      margin-bottom: 35px;
+    }
+
+    .header-box h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 10px 20px rgba(56, 189, 248, 0.2);
+      letter-spacing: 1px;
+    }
+
+    .subtitle {
+      color: #64748b;
+      font-size: 0.95rem;
+      margin-top: 4px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      width: 100%;
+      max-width: 1280px;
+    }
+
+    @media (max-width: 1024px) {
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .grid {
+        grid-template-columns: repeat(1, 1fr);
+      }
+    }
+
+    .card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 20px;
+      padding: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card:hover {
+      transform: translateY(-7px);
+      border-color: rgba(56, 189, 248, 0.5);
+      box-shadow: 0 20px 30px -10px rgba(56, 189, 248, 0.25);
+    }
+
+    .img-container {
+      position: relative;
+      width: 100%;
+      height: 170px;
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .card-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+
+    .card:hover .card-img {
+      transform: scale(1.05);
+    }
+
+    .badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #38bdf8;
+      padding: 4px 12px;
+      border-radius: 30px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .badge-purple {
+      border-color: rgba(192, 132, 252, 0.4);
+      color: #c084fc;
+    }
+
+    .title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #f1f5f9;
+    }
+
+    .detail-box {
+      background: rgba(15, 23, 42, 0.5);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .detail {
+      color: #94a3b8;
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+
+    .code-info {
+      font-size: 0.8rem;
+      color: #64748b;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .code-num {
+      color: #f59e0b;
+      font-weight: 600;
+      background: rgba(245, 158, 11, 0.1);
+      padding: 2px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      font-family: monospace;
+    }
+
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: auto;
+      padding-top: 10px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.1);
+    }
+
+    .price-label {
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+
+    .price {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #4ade80;
+      text-shadow: 0 0 10px rgba(74, 222, 128, 0.2);
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+      transform: scale(1.02);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Notification Toast Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- ================= Auth Section ================= -->
+  <div id="authCard" class="auth-card fade-in">
+
+    <!-- Login Form -->
+    <div id="loginForm">
+      <div class="auth-header">
+        <h1>🐔 เหนียวไก่ตัน 🐔</h1>
+        <p>ยินดีต้อนรับ! กรุณาเข้าสู่ระบบเพื่อดำเนินการต่อ</p>
+      </div>
+
+      <form onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="loginUser">ชื่อผู้ใช้ / อีเมล</label>
+          <input type="text" id="loginUser" class="form-control" placeholder="กรอกชื่อผู้ใช้หรืออีเมล" required>
+        </div>
+
+        <div class="form-group">
+          <label for="loginPass">รหัสผ่าน</label>
+          <input type="password" id="loginPass" class="form-control" placeholder="กรอกรหัสผ่าน" required>
+        </div>
+
+        <div class="options-row">
+          <label class="remember-me">
+            <input type="checkbox"> จดจำฉันไว้
+          </label>
+          <a href="https://m.me/18vAp8WACa" target="_blank" style="color:#38bdf8; text-decoration:none;">ลืมรหัสผ่าน?</a>
+        </div>
+
+        <button type="submit" class="btn-submit">เข้าสู่ระบบ</button>
+      </form>
+
+      <div class="auth-footer">
+        ยังไม่มีบัญชีใช่ไหม? <a onclick="switchAuthForm('register')">สมัครสมาชิก</a>
+      </div>
+    </div>
+
+    <!-- Register Form -->
+    <div id="registerForm" class="hidden">
+      <div class="auth-header">
+        <h1>🐔 เหนียวไก่ตัน 🐔</h1>
+        <p>สร้างบัญชีใหม่เพื่อเริ่มใช้งาน</p>
+      </div>
+
+      <form onsubmit="handleRegister(event)">
+        <div class="form-group">
+          <label for="regUser">ชื่อผู้ใช้ (Username)</label>
+          <input type="text" id="regUser" class="form-control" placeholder="ตั้งชื่อผู้ใช้" required>
+        </div>
+
+        <div class="form-group">
+          <label for="regPass">รหัสผ่าน</label>
+          <input type="password" id="regPass" class="form-control" placeholder="ตั้งรหัสผ่าน" required>
+        </div>
+
+        <div class="form-group">
+          <label for="regPassConfirm">ยืนยันรหัสผ่าน</label>
+          <input type="password" id="regPassConfirm" class="form-control" placeholder="กรอกรหัสผ่านอีกครั้ง" required>
+        </div>
+
+        <button type="submit" class="btn-submit" style="background: linear-gradient(135deg, #9333ea 0%, #c084fc 100%);">ยืนยันการสมัครสมาชิก</button>
+      </form>
+
+      <div class="auth-footer">
+        มีบัญชีอยู่แล้วใช่ไหม? <a onclick="switchAuthForm('login')">เข้าสู่ระบบ</a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ================= Store Section ================= -->
+  <div id="storeSection" class="hidden" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+    <div class="header-box">
+      <h1>🐔 เหนียวไก่ตัน 🐔</h1>
+      <p class="subtitle">จำหน่ายไอดีไก่ตัน ปลอดภัย การันตีจัดส่งเร็ว</p>
+    </div>
+
+    <div class="grid">
+      <!-- Item 1 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://i.ibb.co/k2hJrPBV/FB-IMG-1787447606923.jpg" alt="รูปไอดี">
+          <span class="badge">🔥 ไอดีเทพ ☄️</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + มังกรถาวร</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • หมัด 7 Mastery Max<br>
+            • มีผลโมจิอยู่ในคลัง
+
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-001</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿999</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-001', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+      <!-- Item 2 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://i.ibb.co/6KCfSPj/Screenshot-20260822-192022-com-roblox-client-Activity-Native-Main.jpg" alt="รูปไอดี">
+          <span class="badge badge-purple">💎 ไอดีสุดคุ้ม</span>
+        </div>
+
+        <div class="title">ไก่ตัน เผ่า V4 ครบ</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล Max + เงิน 50M<br>
+            • ปลดล็อกเผ่า V4 เรียบร้อย<br>
+            • ดาบคู่ Cursed Dual Katana
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-002</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿29</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-002', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+
+
+
+
+
+
+
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+     
+     
+     
+     
+     
+     
+     
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+     
+     
+     
+     
+     
+     
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+     
+     
+     
+     
+     
+     
+     
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+     
+     
+     
+     
+     
+     
+     
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+     
+     
+     
+     
+     
+     
+     
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+     
+     
+     
+     
+     
+     
+     
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+     
+     
+     
+     
+     
+     
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+     
+     
+     
+     
+     
+     
+     
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+     
+     
+     
+     
+     
+     
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+     
+     
+     
+     
+     
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+     
+     
+     
+     
+     
+     
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+     
+     
+     
+     
+     
+     
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+     
+     
+     
+     
+     
+     
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+     
+     
+     
+     
+     
+     
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+     
+     
+     
+     
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+     
+     
+     
+     
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+     
+     
+     
+     
+     
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+     
+     
+     
+     
+     
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+     
+     
+     
+     
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+     
+     
+     
+     
+     
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+     
+     
+     
+     
+     
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+     
+     
+     
+     
+     
+      <!-- Item 3 -->
+      <div class="card">
+        <div class="img-container">
+          <img class="card-img" src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=500" alt="รูปไอดี">
+          <span class="badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⚡ สินค้าใหม่</span>
+        </div>
+
+        <div class="title">ไก่ตัน Max + ผลมังกรพก</div>
+
+        <div class="detail-box">
+          <div class="detail">
+            • เลเวล 2550 (Max)<br>
+            • สไตล์การต่อสู้ครบทุกอัน<br>
+            • มีผลมังกรในคลัง + เงินเยอะ
+          </div>
+        </div>
+
+        <div class="code-info">
+          ID สินค้า: <span class="code-num">#BF-003</span>
+        </div>
+
+        <div class="price-row">
+          <div>
+            <div class="price-label">ราคาพิเศษ</div>
+            <div class="price">฿250</div>
+          </div>
+          <button class="btn" onclick="buyWithCode('#BF-003', 'https://m.me/18vAp8WACa')">สั่งซื้อทันที</button>
+        </div>
+      </div>
+
+     
+
+
+
+
+
+        
+        
+        
+        
+        
+        
+        </div>
+        </div>
+
+        
+        
+        
+        
+        
+  <script>
+    // Custom UI Notification
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerText = message;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.animation = 'fadeOut 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards';
+        setTimeout(() => toast.remove(), 400);
+      }, 3000);
+    }
+    // Switch Forms (Smooth & Fixed)
+    function switchAuthForm(target) {
+      const loginForm = document.getElementById('loginForm');
+      const registerForm = document.getElementById('registerForm');
+      const activeForm = target === 'register' ? loginForm : registerForm;
+      const nextForm = target === 'register' ? registerForm : loginForm;
+      activeForm.classList.add('fade-out');
+      setTimeout(() => {
+        activeForm.classList.add('hidden');
+        activeForm.classList.remove('fade-out');
+        nextForm.classList.remove('hidden');
+        nextForm.classList.add('fade-in');
+        setTimeout(() => {
+          nextForm.classList.remove('fade-in');
+        }, 400);
+      }, 300);
+    }
+    // Transition from Auth to Store
+    function transitionToStore() {
+      const authCard = document.getElementById('authCard');
+      const storeSection = document.getElementById('storeSection');
+      authCard.classList.remove('fade-in');
+      authCard.classList.add('fade-out');
+      setTimeout(() => {
+        authCard.classList.add('hidden');
+        storeSection.classList.remove('hidden');
+        storeSection.classList.add('fade-in');
+      }, 350);
+    }
+    // Handle Login
+    function handleLogin(event) {
+      event.preventDefault();
+      const username = document.getElementById('loginUser').value;
+      showToast(`เข้าสู่ระบบสำเร็จ! ยินดีต้อนรับ ${username}`, 'success');
+      transitionToStore();
+    }
+    // Handle Register
+    function handleRegister(event) {
+      event.preventDefault();
+      const pass = document.getElementById('regPass').value;
+      const confirmPass = document.getElementById('regPassConfirm').value;
+      if (pass !== confirmPass) {
+        showToast('รหัสผ่านไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง', 'error');
+        return;
+      }
+      showToast('สมัครสมาชิกสำเร็จ! กำลังเข้าสู่ระบบ...', 'success');
+      transitionToStore();
+    }
+    // Purchase Item
+    function buyWithCode(code, chatUrl) {
+      // ป้องกันไม่ให้ Event กระโดดไปโดนฟอร์มอื่น
+      event.preventDefault();
+      event.stopPropagation();
+      showToast(`สั่งซื้อสินค้า ${code} กำลังนำทางไปหน้าแชท...`, 'success');
+      setTimeout(() => {
+        window.open(chatUrl, '_blank');
+      }, 1000);
+    }
+  </script>
+
+</body>
+
+</html>
