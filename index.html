@@ -1982,13 +1982,16 @@
 
 
 
-    // Purchase Item
+    // Purchase Item (กดปุ่มปุ๊บ เด้งไปหน้าแชททันที 100% ไม่บัค)
 function buyWithCode(code, chatUrl) {
-    showToast(`สั่งซื้อสินค้า ${code} กำลังนำทางไปหน้าแชท...`, 'success');
-    
-    // เปลี่ยนหน้าไปแชททันที (เปิดในแท็บเดิม ป้องกันการโดนบล็อก Pop-up)
-    window.location.href = chatUrl;
+    if (chatUrl) {
+        window.location.href = chatUrl;
     }
+    }
+
+
+
+  </script>
 
 
   </div>
