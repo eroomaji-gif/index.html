@@ -499,6 +499,97 @@
 
 
 
+.user-profile-container {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  z-index: 1000;
+}
+
+.profile-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+  border: 2px solid #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.profile-btn:hover {
+  background-color: #d0d0d0;
+}
+
+.avatar-icon {
+  width: 24px;
+  height: 24px;
+  stroke: #757575; /* สีคนไอคอนสีเทา */
+}
+
+.profile-dropdown {
+  position: absolute;
+  right: 0;
+  top: 50px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 180px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.profile-dropdown.hidden {
+  display: none;
+}
+
+.profile-name {
+  font-weight: bold;
+  margin: 0;
+  color: #333;
+}
+
+.profile-status {
+  font-size: 12px;
+  color: #666;
+}
+
+.dropdown-item {
+  background: none;
+  border: none;
+  padding: 8px 10px;
+  text-align: left;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.dropdown-item:hover {
+  background-color: #f5f5f5;
+}
+
+.logout-btn {
+  color: #d32f2f;
+}
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
 
     
   </style>
@@ -1172,6 +1263,23 @@ function buyWithCode(code, chatUrl) {
 
 
 
+    <script>
+        // โค้ดเดิมอื่นๆ ก่อนหน้า...
+
+        function toggleProfileMenu() {
+            const menu = document.getElementById('profileMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        // ปิดเมนูเมื่อคลิกพื้นที่อื่นข้างนอก
+        window.addEventListener('click', function(e) {
+            const btn = document.getElementById('profileBtn');
+            const menu = document.getElementById('profileMenu');
+            if (btn && menu && !btn.contains(e.target) && !menu.contains(e.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+    </script>
 
 
 
@@ -1179,6 +1287,17 @@ function buyWithCode(code, chatUrl) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+  
 
 
   
