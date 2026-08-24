@@ -531,7 +531,7 @@
             <div class="price-label">ราคาพิเศษ</div>
             <div class="price">฿999</div>
           </div>
-          <button class="btn" onclick="buyWithCode('#BF-001', 'https://www.facebook.com/messages/t/61593817852410')">สั่งซื้อทันที</button>
+          <button class="btn" onclick="buyWithCode('#BF-001')">สั่งซื้อทันที</button>
         </div>
       </div>
 
@@ -632,19 +632,22 @@
 
 
 
-// Purchase Item (เปิดแท็บใหม่ ป้องกันแอปสกัดจนขึ้นไม่มีผู้ใช้งาน)
+// Purchase Item (บังคับดึงแอป Messenger ตรงๆ ไม่ผ่านเว็บ)
 function buyWithCode(code, chatUrl) {
-    if (chatUrl) {
-        // เปิดในแท็บใหม่เพื่อให้เบราว์เซอร์จัดการ URL ให้ถูกต้องก่อนส่งเข้าแอป
-        const newTab = window.open(chatUrl, '_blank');
-        if (newTab) {
-            newTab.focus();
-        } else {
-            // สำรองกรณีโดนบล็อก Pop-up
-            window.location.href = chatUrl;
-        }
-    }
+    const pageId = '61593817852410';
+    
+    // ลองเปิดแอป Messenger บนมือถือโดยตรง
+    const fbAppUrl = `fb-messenger://user-thread/${pageId}`;
+    const webUrl = `https://www.facebook.com/messages/t/${pageId}`;
+    
+    // สั่งเปิดแอปก่อน ถ้าไม่มีแอปค่อยเด้งไปเว็บ
+    window.location.href = fbAppUrl;
+    
+    setTimeout(() => {
+        window.open(webUrl, '_blank');
+    }, 1500);
 }
+
 
 
 
