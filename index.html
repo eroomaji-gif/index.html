@@ -1148,12 +1148,20 @@ function buyWithCode(code, chatUrl) {
         setTimeout(() => {
             const intro = document.getElementById('intro-screen');
             if (intro) {
-                intro.classList.add('fade-out');
+                // ใส่เอฟเฟกต์จางหายแบบนุ่มนวล
+                intro.style.transition = 'opacity 0.6s ease';
+                intro.style.opacity = '0';
+                
+                // พอนับเวลาจางหายเสร็จ ให้ "ลบกล่องทิ้งจากหน้าเว็บเลย" 100% (ไม่ให้มันเหลือขยะไว้บังจอ)
+                setTimeout(() => {
+                    intro.remove();
+                }, 600);
             }
-        }, 1800);
+        }, 2500); // ให้เล่นอนิเมชัน 2.5 วิ แล้วเริ่มจางหาย
     });
 </script>
 
                         </body>
+                       
 
 </html>
