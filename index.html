@@ -14,6 +14,30 @@
       padding: 0;
     }
 
+<!-- 1. ใส่ตัวดึงคลัง Supabase ไว้ก่อนแท็กปิด </head> หรือบนสุดของ <script> -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+  // 2. วาง URL และ KEY ตรงนี้
+  const SUPABASE_URL = 'https://vovhxmeqxptizotfjugf.supabase.co';
+  const SUPABASE_KEY = 'เอารหัส_ANON_KEY_ยาวๆ_จากหน้า_API_มาวางตรงนี้';
+
+  // 3. คำสั่งเปิดการเชื่อมต่อ
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+</script>
+
+
+
+
+
+ 
+
+
+
+
+    
+
+    
     body {
       background: #090d16;
       background-image:
@@ -1109,6 +1133,19 @@ function buyWithCode(code, chatUrl) {
 
 
 
+
+  ... (โค้ด HTML ด้านบนของคุณ) ...
+
+  <!-- วางบรรทัดนี้เพื่อเรียกใช้ Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    const SUPABASE_URL = 'https://vovhxmeqxptizotfjugf.supabase.co';
+    const SUPABASE_KEY = 'เอารหัส_ANON_KEY_ยาวๆ_มาวางตรงนี้';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // ... (โค้ด JavaScript เดิมของคุณ) ...
+  </script>
 
 
 
