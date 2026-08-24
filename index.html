@@ -1105,48 +1105,13 @@ function buyWithCode(code, chatUrl) {
 
 
 
-  <script>
-    const BASE_USERS = 1280; // ปั่นยอดเริ่มต้น
-    const BASE_SALES = 450;  // ปั่นยอดขายเริ่มต้น
-
-    function updateSiteStats() {
-        let currentVisits = parseInt(localStorage.getItem('visitCount') || '0');
-        currentVisits += 1;
-        localStorage.setItem('visitCount', currentVisits);
-
-        const totalUsers = BASE_USERS + currentVisits;
-        const totalSales = BASE_SALES + Math.floor(currentVisits * 0.4);
-
-        document.getElementById('totalUsersCount').innerText = totalUsers.toLocaleString();
-        document.getElementById('totalSalesCount').innerText = totalSales.toLocaleString();
-    }
-
-    function handleLogin(event) {
-        event.preventDefault();
-        document.getElementById('authCard').classList.add('hidden');
-        
-        // อัปเดตสถิติตอนเข้าสู่ระบบ
-        updateSiteStats();
-
-        const intro = document.getElementById('intro-screen');
-        if (intro) {
-            intro.style.display = 'flex';
-            setTimeout(() => {
-                intro.style.transition = 'opacity 0.6s ease';
-                intro.style.opacity = '0';
-                setTimeout(() => intro.remove(), 600);
-            }, 2500);
-        }
-    }
-</script>
-
 
 
 
 
 
   
-
+     </body>      
 
 
 
@@ -1170,6 +1135,6 @@ function buyWithCode(code, chatUrl) {
 </script>
 
                     
-                  </body>                
+                       
 
 </html>
