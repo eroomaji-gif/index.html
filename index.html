@@ -588,6 +588,54 @@
       <p class="subtitle">จำหน่ายไอดีไก่ตัน ปลอดภัย การันตีจัดส่งเร็ว</p>
     </div>
 
+
+// ตั้งค่ายอดเริ่มต้น (ปรับเลขตรงนี้ตามใจชอบเลยครับ!)
+const BASE_USERS = 1280;  // ปั่นยอดผู้ใช้เริ่มต้น
+const BASE_SALES = 450;   // ปั่นยอดการขายเริ่มต้น
+
+// ฟังก์ชันอัปเดตและแสดงผลสถิติ
+function updateSiteStats() {
+    // ดึงค่านับเดิมจากเครื่อง ถ้ายังไม่มีให้ใช้ค่าตั้งต้น
+    let currentVisits = parseInt(localStorage.getItem('visitCount') || '0');
+    
+    // ทุกครั้งที่ฟังก์ชันนี้ทำงาน นับเพิ่ม 1
+    currentVisits += 1;
+    localStorage.setItem('visitCount', currentVisits);
+
+    // คำนวณยอดรวม (ยอดตั้งต้น + จำนวนครั้งที่เข้า)
+    const totalUsers = BASE_USERS + currentVisits;
+    const totalSales = BASE_SALES + Math.floor(currentVisits * 0.4); // เพิ่มยอดขายแบบเนียนๆ
+
+    // แสดงผลบนหน้าเว็บ (ใส่คอมมาแยกหลักพัน)
+    document.getElementById('totalUsersCount').innerText = totalUsers.toLocaleString();
+    document.getElementById('totalSalesCount').innerText = totalSales.toLocaleString();
+}
+
+// ปรับฟังก์ชัน handleLogin เดิม ให้เรียกใช้อัปเดตสถิติ
+function handleLogin(event) {
+    event.preventDefault();
+
+    // 1. ซ่อนหน้าล็อกอิน
+    document.getElementById('authCard').classList.add('hidden');
+
+    // 2. เรียกทำงานตัวนับสถิติ
+    updateSiteStats();
+
+    // 3. เล่น Intro อนิเมชัน
+    const intro = document.getElementById('intro-screen');
+    if (intro) {
+        intro.style.display = 'flex';
+        setTimeout(() => {
+            intro.style.transition = 'opacity 0.6s ease';
+            intro.style.opacity = '0';
+            setTimeout(() => intro.remove(), 600);
+        }, 2500);
+    }
+}
+
+
+    
+
     <div class="grid sold-out">
       <!-- Item 1 -->
       <div class="card">
