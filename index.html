@@ -589,48 +589,18 @@
     </div>
 
 
-// ตั้งค่ายอดเริ่มต้น (ปรับเลขตรงนี้ตามใจชอบเลยครับ!)
-const BASE_USERS = 1280;  // ปั่นยอดผู้ใช้เริ่มต้น
-const BASE_SALES = 450;   // ปั่นยอดการขายเริ่มต้น
+<!-- Stats Bar: ป้ายโชว์สถิติ -->
+<div style="display: flex; gap: 15px; justify-content: center; margin: 20px auto; width: 100%; max-width: 600px;">
+    <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(59, 130, 246, 0.3); padding: 15px 25px; border-radius: 12px; text-align: center; flex: 1;">
+        <div style="font-size: 14px; color: #94a3b8; font-weight: bold;">👥 สมาชิกทั้งหมด</div>
+        <div id="totalUsersCount" style="font-size: 24px; color: #60a5fa; font-weight: 800; margin-top: 5px;">0</div>
+    </div>
+    <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(34, 197, 94, 0.3); padding: 15px 25px; border-radius: 12px; text-align: center; flex: 1;">
+        <div style="font-size: 14px; color: #94a3b8; font-weight: bold;">🛒 รายการที่ขายแล้ว</div>
+        <div id="totalSalesCount" style="font-size: 24px; color: #4ade80; font-weight: 800; margin-top: 5px;">0</div>
+    </div>
+</div>
 
-// ฟังก์ชันอัปเดตและแสดงผลสถิติ
-function updateSiteStats() {
-    // ดึงค่านับเดิมจากเครื่อง ถ้ายังไม่มีให้ใช้ค่าตั้งต้น
-    let currentVisits = parseInt(localStorage.getItem('visitCount') || '0');
-    
-    // ทุกครั้งที่ฟังก์ชันนี้ทำงาน นับเพิ่ม 1
-    currentVisits += 1;
-    localStorage.setItem('visitCount', currentVisits);
-
-    // คำนวณยอดรวม (ยอดตั้งต้น + จำนวนครั้งที่เข้า)
-    const totalUsers = BASE_USERS + currentVisits;
-    const totalSales = BASE_SALES + Math.floor(currentVisits * 0.4); // เพิ่มยอดขายแบบเนียนๆ
-
-    // แสดงผลบนหน้าเว็บ (ใส่คอมมาแยกหลักพัน)
-    document.getElementById('totalUsersCount').innerText = totalUsers.toLocaleString();
-    document.getElementById('totalSalesCount').innerText = totalSales.toLocaleString();
-}
-
-// ปรับฟังก์ชัน handleLogin เดิม ให้เรียกใช้อัปเดตสถิติ
-function handleLogin(event) {
-    event.preventDefault();
-
-    // 1. ซ่อนหน้าล็อกอิน
-    document.getElementById('authCard').classList.add('hidden');
-
-    // 2. เรียกทำงานตัวนับสถิติ
-    updateSiteStats();
-
-    // 3. เล่น Intro อนิเมชัน
-    const intro = document.getElementById('intro-screen');
-    if (intro) {
-        intro.style.display = 'flex';
-        setTimeout(() => {
-            intro.style.transition = 'opacity 0.6s ease';
-            intro.style.opacity = '0';
-            setTimeout(() => intro.remove(), 600);
-        }, 2500);
-    }
 }
 
 
