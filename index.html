@@ -1338,9 +1338,34 @@ function buyWithCode(code, chatUrl) {
 
 
 
+<script>
+function viewProfile() {
+  const modal = document.getElementById('profileModal');
+  modal.classList.remove('hidden');
+  
+  // ซ่อนเมนูดรอปดาวน์ลงไปก่อน
+  document.getElementById('profileMenu').classList.add('hidden');
+}
 
+// ปิดหน้าต่างจัดการโปรไฟล์
+function closeProfileModal() {
+  const modal = document.getElementById('profileModal');
+  modal.classList.add('hidden');
+}
 
+// ฟังก์ชันบันทึกข้อมูลโปรไฟล์
+function saveProfile() {
+  const newName = document.getElementById('editUsername').value;
+  if (newName.trim() !== "") {
+    document.getElementById('displayUsername').innerText = newName;
+    alert("บันทึกข้อมูลเรียบร้อย!");
+    closeProfileModal();
+  } else {
+    alert("กรุณากรอกชื่อผู้ใช้งาน");
+  }
+}
 
+ </script>
 
 
 
