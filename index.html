@@ -632,12 +632,20 @@
 
 
 
-    // Purchase Item (กดปุ่มปุ๊บ เด้งไปหน้าแชททันที 100% ไม่บัค)
+// Purchase Item (เปิดแท็บใหม่ ป้องกันแอปสกัดจนขึ้นไม่มีผู้ใช้งาน)
 function buyWithCode(code, chatUrl) {
     if (chatUrl) {
-        window.location.href = chatUrl;
+        // เปิดในแท็บใหม่เพื่อให้เบราว์เซอร์จัดการ URL ให้ถูกต้องก่อนส่งเข้าแอป
+        const newTab = window.open(chatUrl, '_blank');
+        if (newTab) {
+            newTab.focus();
+        } else {
+            // สำรองกรณีโดนบล็อก Pop-up
+            window.location.href = chatUrl;
+        }
     }
-    }
+}
+
 
 
 
