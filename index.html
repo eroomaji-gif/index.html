@@ -507,6 +507,39 @@
 <body>
 
 
+
+
+
+      <div class="user-profile-container">
+  <button id="profileBtn" class="profile-btn" onclick="toggleProfileMenu()">
+    <!-- รูปคนสีเทา (SVG Avatar) -->
+    <svg class="avatar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+      <circle cx="12" cy="7" r="4"></circle>
+    </svg>
+  </button>
+
+  <!-- เมนูดรอปดาวน์เมื่อคลิกโปรไฟล์ -->
+  <div id="profileMenu" class="profile-dropdown hidden">
+    <div class="profile-info">
+      <p class="profile-name" id="displayUsername">ผู้ใช้งาน</p>
+      <span class="profile-status">สมาชิกทั่วไป</span>
+    </div>
+    <hr />
+    <button onclick="viewProfile()" class="dropdown-item">จัดการโปรไฟล์</button>
+    <button onclick="logout()" class="dropdown-item logout-btn">ออกจากระบบ</button>
+  </div>
+</div>
+
+
+
+
+
+
+
+  
+
+
 <!-- Intro Screen Animation -->
 <div id="intro-screen">
     <div class="pulse-circle"></div>
