@@ -445,54 +445,36 @@
 
 
 
-    /* --- Intro Animation --- */
-#intro-screen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100vh;
-    background-color: #0f172a;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 99999;
-    transition: opacity 0.8s ease, visibility 0.8s;
-}
-
 .pulse-circle {
-    width: 80px;
-    height: 80px;
-    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    width: 90px;
+    height: 90px;
+    background: linear-gradient(135deg, #2563eb, #60a5fa);
     border-radius: 50%;
-    box-shadow: 0 0 20px rgba(37, 99, 235, 0.8);
-    animation: pulseAndZoom 2s forwards ease-in-out;
+    box-shadow: 0 0 30px rgba(37, 99, 235, 0.8);
+    /* ยืดเวลาเล่นเป็น 3.5 วินาที ให้เห็นการกระพริบชัดๆ */
+    animation: pulseAndZoom 3.5s forwards ease-in-out;
 }
 
 @keyframes pulseAndZoom {
     0% {
-        transform: scale(0.5);
-        opacity: 0.3;
+        transform: scale(0.3);
+        opacity: 0.2;
     }
-    30% {
-        transform: scale(1.2);
+    35% {
+        transform: scale(1.3);
         opacity: 1;
-        box-shadow: 0 0 40px rgba(37, 99, 235, 1);
+        box-shadow: 0 0 50px rgba(59, 130, 246, 1);
     }
-    60% {
+    65% {
         transform: scale(0.8);
-        opacity: 0.6;
+        opacity: 0.7;
     }
     100% {
-        transform: scale(30);
+        transform: scale(35); /* ซูมเข้าเต็มตา */
         opacity: 0;
     }
 }
 
-#intro-screen.fade-out {
-    opacity: 0;
-    visibility: hidden;
-}
     
 
 
