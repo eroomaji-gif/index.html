@@ -506,6 +506,23 @@
 
 <body>
 
+
+<!-- Intro Screen Animation -->
+<div id="intro-screen">
+    <div class="pulse-circle"></div>
+</div>
+  
+
+
+
+
+
+
+
+
+
+
+  
   <!-- Notification Toast Container -->
   <div id="toastContainer" class="toast-container"></div>
 
@@ -739,7 +756,22 @@ function buyWithCode(code, chatUrl) {
 
   </div>
   </div>
-    
+
+
+
+
+  
+    <script>
+    window.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            const intro = document.getElementById('intro-screen');
+            if (intro) {
+                intro.classList.add('fade-out');
+            }
+        }, 1800);
+    });
+    </script>
+  
 
 </body>
 
