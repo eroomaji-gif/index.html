@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จับเวลาแช่ข้าวเหนียวแบบด่วน</title>
+    <style>
+        body { 
+            font-family: sans-serif; 
+            text-align: center; 
+            background-color: #f4f4f9; 
+            margin: 0; 
+            padding: 20px; 
+        }
+        h2 { color: #333; margin-bottom: 5px; }
+        p { color: #666; font-size: 14px; margin-bottom: 15px; }
+        .camera-container {
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+        }
+        video, canvas { 
+            width: 100%; 
+            max-width: 400px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .hidden { display: none !important; }
+        .btn { 
+            background-color: #ff9800; 
+            color: white; 
+            border: none; 
+            padding: 14px 28px; 
+            font-size: 18px; 
+            border-radius: 30px; 
+            cursor: pointer; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        .btn:active { background-color: #e68a00; }
+        
+        /* กล่องแจ้งเตือนเมื่อบันทึกรูปเสร็จ */
+        #toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 16px;
+            display: none;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>🧺 ถ่ายรูปแช่ข้าวเหนียว</h2>
+    <p>กดปุ๊บ แปะเวลา และบันทึกลงเครื่องทันที!</p>
+
+    <div class="camera-container">
+        <!-- กล้องสำหรับส่อง -->
+        <video id="video" autoplay playsinline></video>
+    </div>
+
+    <div>
+        <canvas id="canvas" class="hidden"></canvas>
+    </div>
+
+    <div>
+        <button id="snapBtn" class="btn">📸 ถ่ายรูปและบันทึกทันที</button>
+    </div>
+
+    <!-- ข้อความแจ้งเตือนว่าเซฟแล้ว -->
+    <div id="toast">✅ บันทึกรูปภาพลงเครื่องแล้ว!</div>
+
+    <script>
+        const video = document.getElementById('video');
+        const snapBtn = document.getElementById('snapBtn');
+        const canvas = document.getElementById('canvas');
+        const toast = document.getElementById('toast');
+
+        // เปิดกล้องมือถือ (พยายามเลือกกล้องหลังก่อน)
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment' } 
+                });
+                video.srcObject = stream;
+            } catch (err) {
+                console.error("ไม่สามารถเปิดกล้องได้: ", err);
+                alert("กรุณาอนุญาตให้เว็บไซต์เข้าถึงกล้อง");
+            }
+        }
+        startCamera();
+
+        // เมื่อกดปุ่มถ่ายรูป
+        snapBtn.addEventListener('click', () => {
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth || 1280;
+            canvas.height = video.videoHeight || 720;
+
+            // 1. วาดภาพจากวิดีโอลงใน Canvas
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // 2. ดึงเวลาปัจจุบัน (เวลาที่เริ่มแช่)
+            const now = new Date();
+            const startHours = String(now.getHours()).padStart(2, '0');
+            const startMinutes = String(now.getMinutes()).padStart(2, '0');
+            const startTimeStr = `เริ่มแช่: ${startHours}:${startMinutes} น.`;
+
+            // 3. คำนวณเวลาครบ 1 ชั่วโมง (ปรับเพิ่มลดตรง 60 ได้ถ้าต้องการเปลี่ยนเวลา)
+            const targetTime = new Date(now.getTime() + 60 * 60 * 1000); 
+            const targetHours = String(targetTime.getHours()).padStart(2, '0');
+            const targetMinutes = String(targetTime.getMinutes()).padStart(2, '0');
+            const targetTimeStr = `นึ่งตอน: ${targetHours}:${targetMinutes} น.`;
+
+            // 4. วาดแถบพื้นหลังข้อความ (มุมล่างของรูป)
+            const boxHeight = 130;
+            context.fillStyle = 'rgba(0, 0, 0, 0.7)'; // พื้นหลังสีดำโปร่งใส
+            context.fillRect(20, canvas.height - boxHeight - 20, canvas.width - 40, boxHeight);
+
+            // 5. เขียนข้อความลงไปบนรูป
+            context.fillStyle = '#FFEB3B'; // สีเหลือง (เวลาเริ่ม)
+            context.font = 'bold 36px sans-serif';
+            context.fillText(startTimeStr, 40, canvas.height - boxHeight + 25);
+
+            context.fillStyle = '#4CAF50'; // สีเขียว (เวลานึ่ง)
+            context.fillText(targetTimeStr, 40, canvas.height - boxHeight + 80);
+
+            // 6. แปลงเป็นไฟล์รูปภาพและสั่งดาวน์โหลดลงเครื่องทันที
+            const imageUrl = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.href = imageUrl;
+            link.download = `sticky-rice-${startHours}${startMinutes}.png`;
+            link.click();
+
+            // แสดงข้อความแจ้งเตือนสั้นๆ ว่าบันทึกแล้ว
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 2000);
+        });
+    </script>
+
+</body>
+</html>
+
