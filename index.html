@@ -355,6 +355,84 @@ $("googleBtn").onclick=async()=>{
             micBtn.style.display = 'none';
             console.warn("เบราว์เซอร์นี้ไม่รองรับระบบ Voice-to-Text");
         }
+
+
+      // ฟังก์ชันสำหรับแปลงข้อความที่ AI ตอบกลับมา
+function renderMessage(aiResponseText) {
+    // สร้างกล่องข้อความหลัก
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'chat-message';
+
+    // ใช้ Regular Expression แยกข้อความธรรมดากับบล็อกโค้ด (ที่ครอบด้วย ```ภาษา ... ```)
+    // หรือแยกด้วยการมองหาเครื่องหมายบล็อกโค้ด
+    const codeBlockRegex = /```([a-zA-Z]*)\n([\s\S]*?)```/g;
+    
+    let lastIndex = 0;
+    let match;
+
+    // ตรวจสอบว่าในข้อความมีบล็อกโค้ดหรือไม่
+    while ((match = codeBlockRegex.exec(aiResponseText)) !== null) {
+        // 1. ข้อความบทสนทนากวนๆ ที่อยู่ "นอกกล่อง"
+        const normalText = aiResponseText.substring(lastIndex, match.index);
+        if (normalText.trim() !== "") {
+            const textP = document.createElement('p');
+            textP.textContent = normalText.trim();
+            messageDiv.appendChild(textP);
+        }
+
+        // 2. ส่วนที่เป็น "โค้ด" ดึงมาใส่แยกไว้ในกล่องโค้ดโดยเฉพาะ
+        const language = match[1] || 'code';
+        const codeContent = match[2];
+
+        const codeBox = document.createElement('div');
+        codeBox.style.cssText = "background: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 8px; margin: 10px 0; position: relative; font-family: monospace; overflow-x: auto;";
+
+        // ป้ายบอกชื่อภาษาโปรแกรมด้านบนกล่อง
+        const langLabel = document.createElement('span');
+        langLabel.textContent = language.toUpperCase();
+        langLabel.style.cssText = "position: absolute; top: 5px; right: 15px; font-size: 10px; color: #888;";
+        codeBox.appendChild(langLabel);
+
+        // ปุ่มกดคัดลอกเฉพาะโค้ดในกล่องนี้
+        const copyBtn = document.createElement('button');
+        copyBtn.textContent = '📋 คัดลอกโค้ด';
+        copyBtn.style.cssText = "background: #007acc; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-bottom: 10px; font-size: 12px;";
+        
+        const preTag = document.createElement('pre');
+        const codeTag = document.createElement('code');
+        codeTag.textContent = codeContent.trim();
+        preTag.appendChild(codeTag);
+
+        // สั่งงานปุ่มก๊อปปี้เฉพาะโค้ดในกล่อง
+        copyBtn.onclick = () => {
+            navigator.clipboard.writeText(codeContent.trim()).then(() => {
+                copyBtn.textContent = '✅ คัดลอกแล้ว!';
+                setTimeout(() => { copyBtn.textContent = '📋 คัดลอกโค้ด'; }, 2000);
+            });
+        };
+
+        codeBox.appendChild(copyBtn);
+        codeBox.appendChild(preTag);
+        messageDiv.appendChild(codeBox);
+
+        lastIndex = codeBlockRegex.lastIndex;
+    }
+
+    // ข้อความส่วนที่เหลือ (ถ้ามีข้อความต่อท้ายโค้ด)
+    const remainingText = aiResponseText.substring(lastIndex);
+    if (remainingText.trim() !== "") {
+        const textP = document.createElement('p');
+        textP.textContent = remainingText.trim();
+        messageDiv.appendChild(textP);
+    }
+
+    // นำกล่องข้อความทั้งหมดไปแสดงในหน้าจอแชทของคุณ
+    document.getElementById('chatContainer').appendChild(messageDiv);
+}
+      
+
+
+      
     </script>
 </body>
 </html>
