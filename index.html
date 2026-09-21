@@ -67,12 +67,83 @@
 
 
 
+
+/* --- ระบบ Text-to-Speech (AI อ่านเสียงพูด) --- */
+function addTextToSpeechButton(bubbleEl, textToSpeak) {
+  // เช็คว่าเบราว์เซอร์รองรับการสังเคราะห์เสียงไหม
+  if (!('speechSynthesis' in window)) return;
+
+  const ttsBtn = document.createElement('button');
+  ttsBtn.type = 'button';
+  ttsBtn.className = 'tts-btn';
+  ttsBtn.innerHTML = `
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+      <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+    </svg>
+    <span>ฟังเสียง</span>
+  `;
+
+  let isSpeaking = false;
+
+  ttsBtn.onclick = () => {
+    // ถ้ากำลังพูดอยู่ให้หยุด (กดเพื่อ 🛑 หยุดฟัง)
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      return;
+    }
+
+    window.speechSynthesis.cancel(); // หยุดเสียงเก่าก่อนเริ่มใหม่
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+    utterance.lang = 'th-TH'; // ตั้งค่าเสียงเป็นภาษาไทย
+    utterance.rate = 1.0;     // ความเร็วในการพูด
+
+    utterance.onstart = () => {
+      isSpeaking = true;
+      ttsBtn.classList.add('speaking');
+      ttsBtn.querySelector('span').textContent = 'กำลังพูด...';
+    };
+
+    utterance.onend = utterance.onerror = () => {
+      isSpeaking = false;
+      ttsBtn.classList.remove('speaking');
+      ttsBtn.querySelector('span').textContent = 'ฟังเสียง';
+    };
+
+    window.speechSynthesis.speak(utterance);
+  };
+
+  bubbleEl.appendChild(document.createElement('br'));
+  bubbleEl.appendChild(ttsBtn);
+}
+
+// ผูกระบบเข้ากับการแสดงผลข้อความ (ต่อยอดจากฟังก์ชัน renderBubbleContent หรือบล็อกแสดงผลแชทเดิม)
+const originalRenderBubbleContent = window.renderBubbleContent || function(el, txt) { el.textContent = txt; };
+
+window.renderBubbleContent = function(bubbleEl, aiResponseText) {
+  // เรียกฟังก์ชันแปลงกล่องโค้ดเดิม (ถ้ามี)
+  originalRenderBubbleContent(bubbleEl, aiResponseText);
+  
+  // เพิ่มปุ่มอ่านเสียงที่ท้ายกล่องข้อความ AI ทุกครั้งที่ตอบจบ
+  if (aiResponseText && aiResponseText.trim() !== "") {
+    addTextToSpeechButton(bubbleEl, aiResponseText);
+  }
+};
+  
   
 
 
 
   
 </style>
+
+
+
+
+
+
+  
 </head>
 <body>
 
