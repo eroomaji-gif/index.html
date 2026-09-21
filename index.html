@@ -166,7 +166,8 @@ async function callApi(chatId, message){
   for(let attempt=0; attempt<2; attempt++){
     const ctrl=new AbortController(); const t=setTimeout(()=>ctrl.abort(),90000); // Render ตื่นช้าได้ถึง ~60 วิ
     try{
-      const res=await fetch(API_BASE+CHAT_PATH,{method:"POST",headers:{"Content-Type":"application/json"},body,signal:ctrl.signal});
+      const res = await fetch('https://ai-uvix.onrender.com/api/chat', {method: "POST", headers: {"Content-Type": "application/json"}, body});
+      
       clearTimeout(t);
       if(!res.ok) throw new Error("เซิร์ฟเวอร์ตอบกลับผิดพลาด ("+res.status+")");
       return parse(await res.text());
