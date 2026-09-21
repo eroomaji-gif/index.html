@@ -284,5 +284,77 @@ $("googleBtn").onclick=async()=>{
   catch(e){ $("loginErr").textContent="ล็อกอินไม่สำเร็จ: "+(e.code||e.message); }
 };
 </script>
+
+
+
+      <!-- ช่องพิมพ์ข้อความและปุ่มไมค์ของคุณ (วางตรงจุดแสดงผลแชทเดิม) -->
+    <div class="chat-input-container" style="display: flex; gap: 8px; align-items: center;">
+        <input type="text" id="userInput" placeholder="พิมพ์ข้อความ หรือกดไมค์พูด..." style="flex: 1; padding: 10px;">
+        
+        <!-- ปุ่มไมค์ -->
+        <button id="micBtn" type="button" style="background: #ff4757; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+            🎤 พูด
+        </button>
+        
+        <button id="sendBtn" style="padding: 10px 15px;">ส่ง</button>
+    </div>
+
+    <!-- เอาโค้ด JavaScript มาใส่ไว้ในแท็ก <script> แบบนี้ ก่อนปิด </body> -->
+    <script>
+        const micBtn = document.getElementById('micBtn');
+        const userInput = document.getElementById('userInput');
+
+        // เช็กว่าเบราว์เซอร์รองรับระบบ Speech Recognition หรือไม่
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'th-TH'; // ตั้งค่าเป็นภาษาไทย
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            let isRecording = false;
+
+            micBtn.addEventListener('click', () => {
+                if (!isRecording) {
+                    recognition.start();
+                } else {
+                    recognition.stop();
+                }
+            });
+
+            recognition.onstart = () => {
+                isRecording = true;
+                micBtn.style.background = '#2ed573';
+                micBtn.textContent = '🔴 กำลังฟัง...';
+            };
+
+            recognition.onresult = (event) => {
+                const speechToText = event.results[0][0].transcript;
+                userInput.value += (userInput.value ? ' ' : '') + speechToText;
+            };
+
+            recognition.onspeechend = () => {
+                recognition.stop();
+            };
+
+            recognition.onend = () => {
+                isRecording = false;
+                micBtn.style.background = '#ff4757';
+                micBtn.textContent = '🎤 พูด';
+            };
+
+            recognition.onerror = (event) => {
+                console.error('เกิดข้อผิดพลาดกับไมค์: ', event.error);
+                isRecording = false;
+                micBtn.style.background = '#ff4757';
+                micBtn.textContent = '🎤 พูด';
+            };
+
+        } else {
+            micBtn.style.display = 'none';
+            console.warn("เบราว์เซอร์นี้ไม่รองรับระบบ Voice-to-Text");
+        }
+    </script>
 </body>
 </html>
