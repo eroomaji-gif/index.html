@@ -63,6 +63,44 @@
   #toast{position:absolute;left:12px;right:12px;bottom:84px;background:#3a2020;color:#ffb4ab;padding:12px 14px;
     border-radius:10px;font-size:14px;z-index:9;opacity:0;pointer-events:none;transition:.25s}
   #toast.show{opacity:1}
+
+
+
+
+  /* ดีไซน์ปุ่มไมค์สไตล์ Gemini เรียบหรู */
+  #micBtn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--muted);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    border: 1px solid #2c3242;
+    transition: all 0.2s ease;
+    flex: none;
+  }
+  #micBtn:hover {
+    background: var(--panel);
+    color: var(--text);
+  }
+  #micBtn.recording {
+    background: rgba(255, 71, 87, 0.15);
+    border-color: #ff4757;
+    color: #ff4757;
+    animation: pulseMic 1.5s infinite;
+  }
+  @keyframes pulseMic {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.4); }
+    70% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(255, 71, 87, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 71, 87, 0); }
+  }
+  
+
+
+
+  
 </style>
 </head>
 <body>
