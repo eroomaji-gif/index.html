@@ -325,62 +325,7 @@ $("googleBtn").onclick=async()=>{
 
 
 
-/* --- สร้างปุ่มไมค์ไอคอนสไตล์ Gemini --- */
-  <script>
-const micBtn = document.createElement('button');
-micBtn.id = 'micBtn';
-micBtn.type = 'button';
-micBtn.title = 'พูดเพื่อพิมพ์';
 
-// ไอคอนไมค์ SVG แบบเรียบหรู
-micBtn.innerHTML = `
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
-    <path d="M19 10v1a7 7 0 0 1-14 0v-1"></path>
-    <line x1="12" x2="12" y1="19" y2="22"></line>
-  </svg>
-`;
-
-// แทรกปุ่มไมค์ไว้ก่อนปุ่มส่ง (#send) ในแถว .inputbar เดิม
-  
-const sendBtn = $('send');
-sendBtn.parentNode.insertBefore(micBtn, sendBtn);
-
-// ระบบ Voice-to-Text
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-if (SpeechRecognition) {
-  const recognition = new SpeechRecognition();
-  recognition.lang = 'th-TH';
-  recognition.interimResults = false;
-  let isRecording = false;
-
-  micBtn.onclick = () => {
-    if (!isRecording) { recognition.start(); } 
-    else { recognition.stop(); }
-  };
-
-  recognition.onstart = () => {
-    isRecording = true;
-    micBtn.classList.add('recording');
-  };
-
-  recognition.onresult = (event) => {
-    const text = event.results[0][0].transcript;
-    const inputField = $('input');
-    inputField.value += (inputField.value ? ' ' : '') + text;
-    inputField.style.height = 'auto';
-    inputField.style.height = Math.min(inputField.scrollHeight, 120) + 'px';
-    sendBtn.disabled = sending || !inputField.value.trim();
-  };
-
-  recognition.onend = recognition.onerror = () => {
-    isRecording = false;
-    micBtn.classList.remove('recording');
-  };
-} else {
-  micBtn.style.display = 'none';
-}
-  
 
 
       
@@ -388,6 +333,6 @@ if (SpeechRecognition) {
 
 
       
-    </script>
+  
 </body>
 </html>
