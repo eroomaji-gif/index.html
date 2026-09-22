@@ -504,46 +504,6 @@ if (SpeechRecognition) {
 
     ttsBtn.onclick = () => {
       if (isSpeaking) {
-        window.speechSynthesis.cancel();
-        return;
-      }
-
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(textToSpeak);
-      utterance.lang = 'th-TH';
-      utterance.rate = 1.0;
-
-      utterance.onstart = () => {
-        isSpeaking = true;
-        ttsBtn.classList.add('speaking');
-        ttsBtn.querySelector('span').textContent = 'กำลังพูด...';
-      };
-
-      utterance.onend = utterance.onerror = () => {
-        isSpeaking = false;
-        ttsBtn.classList.remove('speaking');
-        ttsBtn.querySelector('span').textContent = 'ฟังเสียง';
-      };
-
-      window.speechSynthesis.speak(utterance);
-    };
-
-    bubbleEl.appendChild(document.createElement('br'));
-    bubbleEl.appendChild(ttsBtn);
-  }
-
-  // ผูกเข้ากับการแสดงผลข้อความ AI เดิมอย่างปลอดภัย
-  const originalRenderBubbleContentFinal = window.renderBubbleContent || function(el, txt) { el.textContent = txt; };
-
-  window.renderBubbleContent = function(bubbleEl, aiResponseText) {
-    originalRenderBubbleContentFinal(bubbleEl, aiResponseText);
-    
-    if (aiResponseText && aiResponseText.trim() !== "") {
-      addTextToSpeechButton(bubbleEl, aiResponseText);
-    }
-  };
-</script>
-  
 
       
 
