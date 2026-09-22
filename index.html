@@ -390,105 +390,49 @@ if (SpeechRecognition) {
   .tts-btn.speaking {
     color: #2ed573;
   }
-
-  /* จัดแต่งปุ่มไมค์สไตล์ Gemini ในช่องพิมพ์ */
-  #micBtn {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: transparent;
-    color: var(--muted);
-    display: grid;
-    place-items: center;
-    cursor: pointer;
-    border: 1px solid #2c3242;
-    transition: all 0.2s ease;
-    flex: none;
-  }
-  #micBtn:hover {
-    background: var(--panel);
-    color: var(--text);
-  }
-  #micBtn.recording {
-    background: rgba(255, 71, 87, 0.15);
-    border-color: #ff4757;
-    color: #ff4757;
-    animation: pulseMic 1.5s infinite;
-  }
-  @keyframes pulseMic {
-    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.4); }
-    70% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(255, 71, 87, 0); }
-    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 71, 87, 0); }
-  }
 </style>
 
+  
 <script>
-  /* --- ระบบจัดการปุ่มไมค์ Voice-to-Text ตัวจริง --- */
-  document.addEventListener("DOMContentLoaded", () => {
-    const micBtn = document.getElementById('micBtn');
-    
-    if (!micBtn) {
-      console.log("ไม่พบปุ่มไมค์ #micBtn บนหน้าจอ");
-      return;
-    }
+// --- สร้างปุ่มไมค์ไอคอนสไตล์ Gemini --- 
+const micBtn = document.createElement('button');
+micBtn.id = 'micBtn';
+micBtn.type = 'button';
+micBtn.title = 'พูดเพื่อพิมพ์';
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'th-TH';
-      recognition.interimResults = false;
-      let isRecording = false;
+// ไอคอนไมค์ SVG แบบเรียบหรู
+micBtn.innerHTML = `
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+    <path d="M19 10v1a7 7 0 0 1-14 0v-1"></path>
+    <line x1="12" x2="12" y1="19" y2="22"></line>
+  </svg>
+`;
 
-      // กดปุ่มเพื่อเริ่มหรือหยุดฟังเสียง
-      micBtn.onclick = (e) => {
-        e.preventDefault();
-        if (!isRecording) {
-          try {
-            recognition.start();
-          } catch (err) {
-            console.log("Speech Error:", err);
-          }
-        } else {
-          recognition.stop();
-        }
-      };
+// แทรกปุ่มไมค์ไว้ก่อนปุ่มส่ง (#send) ในแถว .inputbar เดิม
+const sendBtn = document.getElementById('send');
+sendBtn.parentNode.insertBefore(micBtn, sendBtn);
 
-      recognition.onstart = () => {
-        isRecording = true;
-        micBtn.classList.add('recording');
-      };
+// ระบบ Voice-to-Text
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (SpeechRecognition) {
+  const recognition = new SpeechRecognition();
+  recognition.lang = 'th-TH';
+  recognition.interimResults = false;
+  let isRecording = false;
 
-      recognition.onresult = (event) => {
-        const text = event.results[0][0].transcript;
-        const inputField = document.getElementById('input') || document.querySelector('input, textarea');
-        if (inputField) {
-          inputField.value += (inputField.value ? ' ' : '') + text;
-          inputField.style.height = 'auto';
-          inputField.style.height = Math.min(inputField.scrollHeight, 120) + 'px';
-          
-          // สั่งอัปเดตปุ่มส่งข้อความ (ถ้ามี)
-          const sendBtn = document.getElementById('send');
-          if (sendBtn) {
-            sendBtn.disabled = !inputField.value.trim();
-          }
-        }
-      };
-
-      recognition.onend = recognition.onerror = () => {
-        isRecording = false;
-        micBtn.classList.remove('recording');
-      };
+  micBtn.onclick = () => {
+    if (!isRecording) {
+      recognition.start();
     } else {
-      console.log("เบราว์เซอร์นี้ไม่รองรับ Speech Recognition");
+      recognition.stop();
     }
-  });
+  };
+  
 </script>
   
 
 
-
-
-</script>
   
 
 
@@ -499,4 +443,4 @@ if (SpeechRecognition) {
 </html>
 
 
-ควรใช้งาน
+ควรใช้งานได้
