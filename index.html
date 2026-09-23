@@ -239,31 +239,34 @@ function openChat(id){
 }
 function toggleDrawer(open){ $("app").classList.toggle("open",open); }
 
+
+
 async function sendMessage() {
-    const input = $("#input"); 
+    const input = document.getElementById("input");
+    const sendBtn = document.getElementById("send");
+    if (!input || !sendBtn) return;
+
     const text = input.value.trim();
-    if (!text || sending) return;
+    if (!text || typeof sending !== 'undefined' && sending) return;
 
     input.value = ""; 
     input.style.height = "auto"; 
-    $("#send").disabled = true;
-    sending = true;
+    sendBtn.disabled = true;
+    if (typeof sending !== 'undefined') sending = true;
 
     // 1. เพิ่มข้อความของผู้ใช้ลงในหน้าจอแชทตามปกติ
-    chatsCache.push({ sender: "USER", text: text, timestamp: Date.now() });
-    renderMessages(chatsCache);
+    if (typeof chatsCache !== 'undefined') {
+        chatsCache.push({ sender: "USER", text: text, timestamp: Date.now() });
+        renderMessages(chatsCache);
+    }
 
-    // 2. เช็กว่าเป็นคำสั่งสร้างรูปภาพหรือไม่ (เช่น มีคำว่า "วาด" หรือ "รูป")
+    // 2. เช็กว่าเป็นคำสั่งสร้างรูปภาพหรือไม่ (มีคำว่า "วาด" หรือ "รูป")
     const isImageCommand = text.includes("วาด") || text.includes("รูป") || text.toLowerCase().includes("generate");
 
-    if (isImageCommand) {
-        // --- กรณีสั่งสร้างรูปภาพ (เปลี่ยนสถานะโหลดเป็นสร้างรูป) ---
-        // เราสามารถปรับแต่งข้อความสถานะโหลดตรงจุดนี้ได้
-        sendingText = "AI กำลังสร้างรูป..."; 
-        renderMessages(chatsCache);
-
-        try {
-            // ส่งไปที่ Backend API สร้างรูปที่เราเพิ่งทำไว้
+    try {
+        if (isImageCommand) {
+            // --- กรณีสั่งสร้างรูปภาพ ---
+            // ถ้าอยากให้ขึ้นสถานะกำลังสร้างรูป ให้ลองปรับตรงนี้ตามระบบ render ของคุณ
             const res = await fetch('/api/generate-image', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -271,25 +274,13 @@ async function sendMessage() {
             });
             const data = await res.json();
 
-            sending = false;
             if (data.imageUrl) {
-                // ถ้าได้รูปภาพกลับมา ให้แสดงผลรูปในแชท
-                chatsCache.push({ sender: "AI", text: `นี่ครับรูปที่คุณสั่ง: \n![Generated Image](${data.imageUrl})`, timestamp: Date.now() });
+                chatsCache.push({ sender: "AI", text: `นี่ครับรูปที่คุณสั่ง:\n![Image](${data.imageUrl})`, timestamp: Date.now() });
             } else {
                 chatsCache.push({ sender: "AI", text: data.error || "เกิดข้อผิดพลาดในการสร้างรูป", timestamp: Date.now() });
             }
-        } catch (err) {
-            sending = false;
-            chatsCache.push({ sender: "AI", text: "เชื่อมต่อระบบสร้างรูปภาพไม่ได้", timestamp: Date.now() });
-        }
-
-    } else {
-        // --- กรณีแชทคุยสนทนาปกติ (สถานะ AI กำลังพิมพ์...) ---
-        sendingText = "AI กำลังพิมพ์...";
-        renderMessages(chatsCache);
-
-        try {
-            // แปลงรูปแบบประวัติการคุยให้ตรงกับที่ API แชทต้องการ
+        } else {
+            // --- กรณีแชทคุยสนทนาปกติ ---
             const apiMessages = chatsCache.map(m => ({
                 role: m.sender === "USER" ? "user" : "assistant",
                 content: m.text
@@ -302,20 +293,29 @@ async function sendMessage() {
             });
             const data = await res.json();
 
-            sending = false;
             if (data.reply) {
                 chatsCache.push({ sender: "AI", text: data.reply, timestamp: Date.now() });
             } else {
                 chatsCache.push({ sender: "AI", text: "ระบบแชทขัดข้องชั่วคราว", timestamp: Date.now() });
             }
-        } catch (err) {
-            sending = false;
-            chatsCache.push({ sender: "AI", text: "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์", timestamp: Date.now() });
+        }
+    } catch (err) {
+        console.error(err);
+        chatsCache.push({ sender: "AI", text: "เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์", timestamp: Date.now() });
+    } finally {
+        // คืนค่าปุ่มส่งให้กลับมาใช้งานได้เสมอ ไม่ว่าจะสำเร็จหรือพัง
+        if (typeof sending !== 'undefined') sending = false;
+        sendBtn.disabled = false;
+        if (typeof renderMessages !== 'undefined' && typeof chatsCache !== 'undefined') {
+            renderMessages(chatsCache);
         }
     }
-
-    renderMessages(chatsCache);
 }
+  
+
+
+
+  
   
 
 function startApp(s, displayName){
