@@ -247,53 +247,16 @@ async function sendMessage(){
   if(!text||sending) return;
   input.value=""; input.style.height="auto"; $("send").disabled=true;
   sending=true;
-  
   try{
     const first = currentChat===null;
     if(first){ currentChat=await store.newChat(); openChat(currentChat); }
     const id=currentChat;
-    
-    // 1. บันทึกข้อความของผู้ใช้ตามต้นฉบับเดิมเป๊ะๆ
     await store.addMessage(id,{sender:"USER",message:text,timestamp:Date.now()}, first?text.slice(0,40):null);
     renderMessages(lastMsgs);
-
-    // 2. เช็กว่าเป็นคำสั่งสร้างรูปภาพหรือไม่
-    const isImageCommand = text.includes("วาด") || text.includes("รูป") || text.toLowerCase().includes("generate");
-
-    if (isImageCommand) {
-      // --- โหมดสั่งสร้างรูปภาพ ---
-      const res = await fetch('/api/generate-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: text })
-      });
-      const data = await res.json();
-
-      let replyText = "เกิดข้อผิดพลาดในการสร้างรูป";
-      if (data.imageUrl) {
-        replyText = `นี่ครับรูปที่คุณสั่ง:\n![Image](${data.imageUrl})`;
-      } else if (data.error) {
-        replyText = data.error;
-      }
-
-      // บันทึกผลลัพธ์รูปภาพลงแชท
-      await store.addMessage(id, {sender:"AI", message:replyText, timestamp:Date.now()});
-      renderMessages(lastMsgs);
-
-    } else {
-      // --- โหมดแชทคุยปกติ (ตามต้นฉบับเดิม) ---
-      const replies=await callApi(id,text);
-      for(const r of replies) await store.addMessage(id,r);
-      renderMessages(lastMsgs);
-    }
-
-  }catch(e){ 
-    toast(e.message||"ส่งข้อความไม่สำเร็จ"); 
-  }finally{ 
-    sending=false; 
-    renderMessages(lastMsgs); 
-    $("send").disabled=!$("input").value.trim(); 
-  }
+    const replies=await callApi(id,text);
+    for(const r of replies) await store.addMessage(id,r);
+  }catch(e){ toast(e.message||"ส่งข้อความไม่สำเร็จ"); }
+  finally{ sending=false; renderMessages(lastMsgs); $("send").disabled=!$("input").value.trim(); }
 }
   
 
