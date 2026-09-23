@@ -241,7 +241,6 @@ function toggleDrawer(open){ $("app").classList.toggle("open",open); }
 
 
 
-async function sendMessage() {
 async function sendMessage(){
   const input=$("input"); const text=input.value.trim();
   if(!text||sending) return;
