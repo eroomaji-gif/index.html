@@ -265,14 +265,18 @@ function renderChats(chats){
   });
 }
 function renderMessages(msgs){
-  const box=$("msgs"); box.innerHTML="";
-  if(!msgs.length && !sending){ box.innerHTML='<div class="empty">เริ่มคุยกับ AI ได้เลย</div>'; return; }
-  [...msgs].sort((a,b)=>a.timestamp-b.timestamp).forEach(m=>{     // เก่า -> ใหม่
-    const r=document.createElement("div"); const isUser=m.sender==="USER";
-    r.className="row "+(isUser?"user":"ai");
-    if(!isUser){ const l=document.createElement("div"); l.className="logo"; l.textContent="AI"; r.appendChild(l); }
-    const b=document.createElement("div"); b.className="bubble";
-    if(m.message) b.textContent=m.message;
+  const b=document.createElement("div"); b.className="bubble";
+if(m.message){
+  const textEl=document.createElement("span"); textEl.style.whiteSpace="pre-wrap";
+  b.appendChild(textEl);
+  if(isUser || revealedIds.has(m.id)){
+    textEl.textContent=m.message;
+  } else {
+    revealedIds.add(m.id);
+    typewriterReveal(textEl, m.message);
+  }
+}
+if(Array.isArray(m.images)){
     if(Array.isArray(m.images)){
       m.images.forEach(src=>{
         const img=document.createElement("img");
