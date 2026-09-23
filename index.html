@@ -387,21 +387,30 @@ const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecogni
 if (SpeechRecognition) {
   const recognition = new SpeechRecognition();
   recognition.lang = 'th-TH';
-  recognition.continuous = true;      // ไม่ตัดจบเองตอนเงียบสั้นๆ ฟังต่อไปจนกว่าจะกดหยุด
-  recognition.interimResults = true;  // โชว์คำที่กำลังพูดแบบสดๆ ด้วย
+  recognition.continuous = true;
+  recognition.interimResults = true;
   let isRecording = false;
-  let baseValue = '';       // ข้อความเดิมในช่อง ก่อนเริ่มพูด
-  let finalTranscript = ''; // ข้อความที่ยืนยันแล้วระหว่างพูด
+  let baseValue = '';
+  let finalTranscript = '';
 
-  micBtn.onclick = () => {
-    if (!isRecording) {
-      const inputField = $('input');
-      baseValue = inputField.value ? inputField.value + ' ' : '';
-      finalTranscript = '';
-      try { recognition.start(); }
-      catch(e) { console.warn('recognition already active, restarting', e); recognition.stop(); }
-    } else {
-      recognition.stop();
+  micBtn.onclick = async () => {
+    if (isRecording) { recognition.stop(); return; }
+
+    // ขอ permission ไมค์ก่อนอย่างชัดเจน (บาง browser ต้องการแบบนี้ ไม่งั้น start() จะเงียบ)
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(t => t.stop()); // ขอแค่เช็ค permission ไม่ได้ใช้ stream นี้จริง
+    } catch (permErr) {
+      toast('ไม่ได้รับอนุญาตให้ใช้ไมค์ครับ (เช็ค permission ในตั้งค่า browser)');
+      return;
+    }
+
+    const inputField = $('input');
+    baseValue = inputField.value ? inputField.value + ' ' : '';
+    finalTranscript = '';
+    try { recognition.start(); }
+    catch (e) {
+      toast('เริ่มฟังไม่สำเร็จ: ' + (e.message || e));
     }
   };
 
@@ -424,15 +433,25 @@ if (SpeechRecognition) {
     sendBtn.disabled = sending || !inputField.value.trim();
   };
 
-  recognition.onend = recognition.onerror = () => {
+  recognition.onend = () => {
     isRecording = false;
     micBtn.classList.remove('recording');
   };
+
+  recognition.onerror = (e) => {
+    isRecording = false;
+    micBtn.classList.remove('recording');
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+      toast('ไม่ได้รับอนุญาตให้ใช้ไมค์ครับ');
+    } else if (e.error === 'no-speech') {
+      // เงียบไปเฉยๆ ไม่ต้องเตือน ผู้ใช้แค่ยังไม่พูด
+    } else {
+      toast('ไมค์มีปัญหา: ' + e.error);
+    }
+  };
 } else {
   micBtn.style.display = 'none';
-}
-  
-
+    }
 
   
 </script>
@@ -496,4 +515,4 @@ if (SpeechRecognition) {
 </html>
 
 
-ควรใช้งาน
+ควรใช้
