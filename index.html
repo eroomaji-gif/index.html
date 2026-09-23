@@ -240,7 +240,16 @@ function speakText(text, btn){
 let store=null, user=null, currentChat=null, sending=false, chatsCache=[];
 
 
-
+const revealedIds=new Set(); // เก็บ id ข้อความ AI ที่เล่นแอนิเมชันไปแล้ว กันเล่นซ้ำตอน re-render
+function typewriterReveal(el, text){
+  let i=0; const box=$("msgs"); const speed=16;
+  const timer=setInterval(()=>{
+    if(!document.body.contains(el)){ clearInterval(timer); return; }
+    i++; el.textContent=text.slice(0,i);
+    box.scrollTop=box.scrollHeight;
+    if(i>=text.length) clearInterval(timer);
+  }, speed);
+}
 
   
 function renderChats(chats){
