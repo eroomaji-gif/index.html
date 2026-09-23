@@ -322,12 +322,10 @@ async function sendMessage(){
     await store.addMessage(id,{sender:"USER",message:text,timestamp:Date.now()}, first?text.slice(0,40):null);
     renderMessages(lastMsgs);
     const replies=await callApi(id,text,historySnapshot);
-sending=false;
-for(const r of replies) await store.addMessage(id,r);
-}catch(e){ sending=false; toast(e.message||"ส่งข้อความไม่สำเร็จ"); renderMessages(lastMsgs); }
-finally{ $("send").disabled=!$("input").value.trim(); }
+    for(const r of replies) await store.addMessage(id,r);
+  }catch(e){ toast(e.message||"ส่งข้อความไม่สำเร็จ"); }
+  finally{ sending=false; renderMessages(lastMsgs); $("send").disabled=!$("input").value.trim(); }
 }
-  
 
 
 
