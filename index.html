@@ -239,22 +239,84 @@ function openChat(id){
 }
 function toggleDrawer(open){ $("app").classList.toggle("open",open); }
 
-async function sendMessage(){
-  const input=$("input"); const text=input.value.trim();
-  if(!text||sending) return;
-  input.value=""; input.style.height="auto"; $("send").disabled=true;
-  sending=true;
-  try{
-    const first = currentChat===null;
-    if(first){ currentChat=await store.newChat(); openChat(currentChat); }
-    const id=currentChat;
-    await store.addMessage(id,{sender:"USER",message:text,timestamp:Date.now()}, first?text.slice(0,40):null);
-    renderMessages(lastMsgs);
-    const replies=await callApi(id,text);
-    for(const r of replies) await store.addMessage(id,r);
-  }catch(e){ toast(e.message||"ส่งข้อความไม่สำเร็จ"); }
-  finally{ sending=false; renderMessages(lastMsgs); $("send").disabled=!$("input").value.trim(); }
+async function sendMessage() {
+    const input = $("#input"); 
+    const text = input.value.trim();
+    if (!text || sending) return;
+
+    input.value = ""; 
+    input.style.height = "auto"; 
+    $("#send").disabled = true;
+    sending = true;
+
+    // 1. เพิ่มข้อความของผู้ใช้ลงในหน้าจอแชทตามปกติ
+    chatsCache.push({ sender: "USER", text: text, timestamp: Date.now() });
+    renderMessages(chatsCache);
+
+    // 2. เช็กว่าเป็นคำสั่งสร้างรูปภาพหรือไม่ (เช่น มีคำว่า "วาด" หรือ "รูป")
+    const isImageCommand = text.includes("วาด") || text.includes("รูป") || text.toLowerCase().includes("generate");
+
+    if (isImageCommand) {
+        // --- กรณีสั่งสร้างรูปภาพ (เปลี่ยนสถานะโหลดเป็นสร้างรูป) ---
+        // เราสามารถปรับแต่งข้อความสถานะโหลดตรงจุดนี้ได้
+        sendingText = "AI กำลังสร้างรูป..."; 
+        renderMessages(chatsCache);
+
+        try {
+            // ส่งไปที่ Backend API สร้างรูปที่เราเพิ่งทำไว้
+            const res = await fetch('/api/generate-image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: text })
+            });
+            const data = await res.json();
+
+            sending = false;
+            if (data.imageUrl) {
+                // ถ้าได้รูปภาพกลับมา ให้แสดงผลรูปในแชท
+                chatsCache.push({ sender: "AI", text: `นี่ครับรูปที่คุณสั่ง: \n![Generated Image](${data.imageUrl})`, timestamp: Date.now() });
+            } else {
+                chatsCache.push({ sender: "AI", text: data.error || "เกิดข้อผิดพลาดในการสร้างรูป", timestamp: Date.now() });
+            }
+        } catch (err) {
+            sending = false;
+            chatsCache.push({ sender: "AI", text: "เชื่อมต่อระบบสร้างรูปภาพไม่ได้", timestamp: Date.now() });
+        }
+
+    } else {
+        // --- กรณีแชทคุยสนทนาปกติ (สถานะ AI กำลังพิมพ์...) ---
+        sendingText = "AI กำลังพิมพ์...";
+        renderMessages(chatsCache);
+
+        try {
+            // แปลงรูปแบบประวัติการคุยให้ตรงกับที่ API แชทต้องการ
+            const apiMessages = chatsCache.map(m => ({
+                role: m.sender === "USER" ? "user" : "assistant",
+                content: m.text
+            }));
+
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messages: apiMessages })
+            });
+            const data = await res.json();
+
+            sending = false;
+            if (data.reply) {
+                chatsCache.push({ sender: "AI", text: data.reply, timestamp: Date.now() });
+            } else {
+                chatsCache.push({ sender: "AI", text: "ระบบแชทขัดข้องชั่วคราว", timestamp: Date.now() });
+            }
+        } catch (err) {
+            sending = false;
+            chatsCache.push({ sender: "AI", text: "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์", timestamp: Date.now() });
+        }
+    }
+
+    renderMessages(chatsCache);
 }
+  
 
 function startApp(s, displayName){
   store=s; currentChat=null; lastMsgs=[];
