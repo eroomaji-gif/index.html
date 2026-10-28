@@ -771,6 +771,8 @@ function update(dt) {
     P.y = Math.max(TOP + P.r, Math.min(H - P.r, P.y + my * sp * dt));
   }
   socket.emit('player-move', { x: P.x, y: P.y, aim: P.aim, hp: P.hp });
+  socket.emit('shoot', { x: P.x, y: P.y, aim: P.aim });
+  
   
   // เล็ง + ยิง
   const target = nearest();
