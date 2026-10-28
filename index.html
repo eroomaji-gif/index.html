@@ -773,9 +773,9 @@ function update(dt) {
     P.x = Math.max(P.r, Math.min(W - P.r, P.x + mx * sp * dt));
     P.y = Math.max(TOP + P.r, Math.min(H - P.r, P.y + my * sp * dt));
   }
-  socket.emit('player-move', { x: P.x, y: P.y, aim: P.aim, hp: P.hp });
-  socket.emit('shoot', { x: P.x, y: P.y, aim: P.aim });
-  
+    // ส่งตำแหน่งให้เซิร์ฟเวอร์ ~20 ครั้ง/วินาที (ไม่ส่งทุกเฟรม) และไม่ส่งตอนยังเชื่อมต่อไม่ติด
+  netT -= dt;
+  if (netT <= 0 && socket.connected) { netT = 0.05; socket.volatile.emit('player-move', { x: P.x, y: P.y, aim: P.aim, hp: P.hp }); }
   
   // เล็ง + ยิง
   const target = nearest();
