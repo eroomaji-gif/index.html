@@ -915,6 +915,14 @@ function draw() {
   for (const f of fish) drawFish(f);
   if (boss) drawBoss(boss, time);
   drawPlayer(P, time);
+    // วาดตัวเพื่อนๆ ที่เข้ามาในห้อง
+  for (let id in remotePlayers) {
+    if (id !== socket.id) {
+      let rp = remotePlayers[id];
+      drawOtherPlayer(rp); 
+    }
+  }
+  
   if (P.poison > 0) { ctx.fillStyle = 'rgba(60,220,60,.22)'; dot(P.x, P.y, P.r + 9); }
   if (P.stun > 0) for (let i = 0; i < 3; i++) { const a = time * 6 + i * 2.1; ctx.fillStyle = '#7fd0ff'; dot(P.x + Math.cos(a) * 15, P.y - P.r - 7 + Math.sin(a) * 4, 3); }
   // กระสุนศัตรู
@@ -1010,6 +1018,23 @@ function loop(now) {
 }
 requestAnimationFrame(loop);
 
+
+
+
+
+
+
+  function drawOtherPlayer(rp) {
+  ctx.save();
+  ctx.translate(rp.x, rp.y);
+  ctx.rotate(rp.aim);
+  ctx.fillStyle = '#4fc3f7'; 
+  ctx.beginPath(); ctx.arc(0, 0, 13, 0, 7); ctx.fill();
+  ctx.strokeStyle = '#0288d1'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = '#333'; ctx.fillRect(4, -3, 16, 6);
+  ctx.restore();
+  }
+  
 </script>
 </body>
 </html>
