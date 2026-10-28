@@ -697,6 +697,7 @@ function shoot() {
   });
   if (!P.weapon && !hasB('inf')) { ammo--; if (ammo <= 0) reloadT = 1.1; }
   P.cd = w.cd / rateMul(); P.flash = .06;
+    if (socket.connected) socket.volatile.emit('shoot', { x: P.x, y: P.y, vx: Math.cos(P.aim) * w.speed, vy: Math.sin(P.aim) * w.speed });
 }
 
 // ---------- input ----------
