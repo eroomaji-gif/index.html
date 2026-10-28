@@ -447,13 +447,16 @@ const MAG = 30;
 socket.on('connect', () => {
   console.log('เชื่อมต่อห้องเล่นกับเพื่อนสำเร็จ ID:', socket.id);
 });
-  // ประกาศตัวแปรเก็บข้อมูลเพื่อน
+  // ประกาศตัวแปรเก็บข้อมูลเกมทั้งหมดจากเซิร์ฟเวอร์
 let remotePlayers = {};
 
-socket.on('update-players', (playersData) => {
-  remotePlayers = playersData;
+socket.on('game-state', (data) => {
+  remotePlayers = data.players;
+  if (data.fishes) fishes = data.fishes;
+  if (data.bullets) bullets = data.bullets;
+  if (data.boss) boss = data.boss;
 });
-  
+
 
 // ---------- ข้อมูล ----------
 const TYPES = {
