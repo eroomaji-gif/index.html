@@ -442,6 +442,18 @@ const params = new URLSearchParams(location.search);
 const BOSS_EVERY = Math.max(1, +params.get('boss') || 25);   // บอสทุกกี่เวฟ (ทดสอบ: ?boss=3)
 const START_WAVE = Math.max(1, +params.get('wave') || 1);    // เริ่มที่เวฟไหน (ทดสอบ: ?wave=24)
 const MAG = 30;
+  const socket = io('https://URL-เซิร์ฟเวอร์ของคุณ.onrender.com'); // หรือลิงก์ Backend ของคุณ
+
+socket.on('connect', () => {
+  console.log('เชื่อมต่อห้องเล่นกับเพื่อนสำเร็จ ID:', socket.id);
+});
+  // ประกาศตัวแปรเก็บข้อมูลเพื่อน
+let remotePlayers = {};
+
+socket.on('update-players', (playersData) => {
+  remotePlayers = playersData;
+});
+  
 
 // ---------- ข้อมูล ----------
 const TYPES = {
