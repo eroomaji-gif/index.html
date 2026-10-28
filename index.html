@@ -758,6 +758,8 @@ function update(dt) {
     P.x = Math.max(P.r, Math.min(W - P.r, P.x + mx * sp * dt));
     P.y = Math.max(TOP + P.r, Math.min(H - P.r, P.y + my * sp * dt));
   }
+  socket.emit('player-move', { x: P.x, y: P.y, aim: P.aim, hp: P.hp });
+  
   // เล็ง + ยิง
   const target = nearest();
   if (mouseAim && firing && !('ontouchstart' in window)) P.aim = Math.atan2(mouseAim.y - P.y, mouseAim.x - P.x);
