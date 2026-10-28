@@ -447,14 +447,12 @@ const MAG = 30;
 socket.on('connect', () => {
   console.log('เชื่อมต่อห้องเล่นกับเพื่อนสำเร็จ ID:', socket.id);
 });
-  // ประกาศตัวแปรเก็บข้อมูลเกมทั้งหมดจากเซิร์ฟเวอร์
+  // รับเฉพาะ "ผู้เล่นคนอื่น" จากเซิร์ฟเวอร์ (ปลา/กระสุน/บอส คำนวณในเครื่องตัวเอง ห้ามเขียนทับ)
 let remotePlayers = {};
+let netT = 0; // ตัวจับเวลาส่งตำแหน่ง
 
 socket.on('game-state', (data) => {
-  remotePlayers = data.players;
-  if (data.fishes) fishes = data.fishes;
-  if (data.bullets) bullets = data.bullets;
-  if (data.boss) boss = data.boss;
+  remotePlayers = (data && data.players) || {};
 });
 
 
