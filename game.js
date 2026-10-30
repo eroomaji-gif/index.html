@@ -440,21 +440,39 @@ const _camT=new V3();
 function updateCamera(dt,time){
   const hookMode=FS.state!=='idle'&&FS.state!=='charge';
   const fp=S.set.cam==='fp'&&!hookMode&&FS.state!=='charge';
-  camera.rotation.order='YXZ';camera.rotation.set(ctl.pitch,ctl.yaw,0);
-  const look=new V3(-Math.sin(ctl.yaw)*Math.cos(ctl.pitch),Math.sin(ctl.pitch),-Math.cos(ctl.yaw)*Math.cos(ctl.pitch));
+  camera.rotation.order='YXZ'; camera.rotation.set(ctl.pitch,ctl.yaw,0);
+  const look=new V3(-Math.sin(ctl.yaw)*Math.cos(ctl.pitch), Math.sin(ctl.pitch), -Math.cos(ctl.yaw)*Math.cos(ctl.pitch));
+  
   if(hookMode){
-    camera.position.copy(FS.hook).addScaledVector(look,-FS.camD);
-    if(FS.state==='fight'&&FS.tens>70){camera.position.x+=(Math.random()-.5)*.08*FS.camD*.3;camera.position.y+=(Math.random()-.5)*.08*FS.camD*.3;}
-    if(FS.state==='bite'){camera.position.y+=Math.sin(time*50)*.03;}
-    const fl=gH(camera.position.x,camera.position.z)+.15;if(camera.position.y<fl)camera.position.y=fl;
-  }else if(fp){camera.position.set(P.x,P.y+1.55,P.z);}
-  else{
-    _camT.set(P.x,P.y+1.5,P.z);const d=P.carry?4.8:4.2;camera.position.copy(_camT).addScaledVector(look,-d);
-    const fl=Math.max(gH(camera.position.x,camera.position.z),P.swim?-99:-.2)+.35;if(camera.position.y<fl&&!P.swim)camera.position.y=fl;
-    for(const e of LOGS){/* กล้องไม่ชนท่อนไม้ */}
+    let targetCamD = FS.camD;
+    
+    // ถือกำลังดึงปลาขึ้นสำเร็จ (Landed/Retrieve) ให้กล้องแพนขึ้นตามตัวปลา
+    if(FS.state === 'landed' || FS.state === 'retrieve'){
+      _camT.copy(FS.hook).add(new V3(0, 0.8, -targetCamD * 0.8));
+      camera.position.lerp(_camT, dt * 6);
+    } else {
+      // ระหว่างสู้กับปลา กล้องจะตามตะขอพร้อมสั่นตามแรงดึงของปลา
+      camera.position.copy(FS.hook).addScaledVector(look,-targetCamD);
+      if(FS.state==='fight' && (FS.tens>60 || FS.pull)){
+        const shake = (FS.tens / 100) * 0.15;
+        camera.position.x += (Math.random()-.5) * shake;
+        camera.position.y += (Math.random()-.5) * shake;
+      }
+    }
+    
+    const fl=gH(camera.position.x,camera.position.z)+.15;
+    if(camera.position.y<fl)camera.position.y=fl;
+  }else if(fp){
+    camera.position.set(P.x,P.y+1.55,P.z);
+  }else{
+    _camT.set(P.x,P.y+1.5,P.z); const d=P.carry?4.8:4.2;
+    camera.position.copy(_camT).addScaledVector(look,-d);
+    const fl=Math.max(gH(camera.position.x,camera.position.z),P.swim?-99:-.2)+.35;
+    if(camera.position.y<fl&&!P.swim)camera.position.y=fl;
   }
   mountHeld();
 }
+
 /* ---------- แอนิเมชันตัวละคร ---------- */
 function animPlayer(dt,time){
   const fpEff=S.set.cam==='fp'&&FS.state==='idle';
