@@ -35,7 +35,7 @@
   const CACHE = {};
   const loader = new THREE.GLTFLoader();
   keys.forEach(key => {
-    loader.parse(MODELS.buffer(key), '', gltf => {
+  loader.parse(MODELS.buffer(key), '', gltf => {
       const root = gltf.scene;
       root.updateMatrixWorld(true);
       const box = new THREE.Box3().setFromObject(root), size = new THREE.Vector3(), ctr = new THREE.Vector3();
