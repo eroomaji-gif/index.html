@@ -197,10 +197,26 @@ function landFish(){
 }
 function updateLine(){
   if(!lineMesh.visible)return;
-  rodTipPos(_v);const a=lineGeo.attributes.position,sag=FS.state==='fight'?.05:clamp(_v.distanceTo(FS.hook)*.04,.1,3);
-  for(let i=0;i<LN;i++){const u=i/(LN-1);a.setXYZ(i,lerp(_v.x,FS.hook.x,u),lerp(_v.y,FS.hook.y,u)-Math.sin(u*Math.PI)*sag,lerp(_v.z,FS.hook.z,u));}
+  rodTipPos(_v); const a=lineGeo.attributes.position;
+  const sag = FS.state==='fight' ? 0.05 : clamp(_v.distanceTo(FS.hook)*.04, .1, 3);
+  
+  for(let i=0; i<LN; i++){
+    const u = i / (LN - 1);
+    let lx = lerp(_v.x, FS.hook.x, u);
+    let lz = lerp(_v.z, FS.hook.z, u);
+    let ly = lerp(_v.y, FS.hook.y, u) - Math.sin(u*Math.PI)*sag;
+    
+    // ตรวจสอบไม่ให้สายเบ็ดทะลุดิน (ถ้าตำแหน่งต่ำกว่าพื้น ให้แนบไปกับพื้นดิน)
+    const groundH = gH(lx, lz);
+    if(ly < groundH){
+      ly = groundH + 0.04; // ให้ลอยเหนือพื้นดินเล็กน้อย
+    }
+    
+    a.setXYZ(i, lx, ly, lz);
+  }
   a.needsUpdate=true;
 }
+
 
 /* ---------- ฉมวก / ขวาน / จอบ ---------- */
 function stab(){
