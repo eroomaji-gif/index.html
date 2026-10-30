@@ -331,8 +331,6 @@ function dropLog(){
 function buildRot(d){G.gYaw+=d*Math.PI/12;}
 function buildMode(){G.gMode=(G.gMode+1)%3;}
 function buildH(d){G.gOff=clamp(G.gOff+d*.2,-1.5,4);}
-
-  
   
 /* ---------- ฝนปลา ---------- */
 const RF=[],RFSP=FISH.filter(f=>f.r<=1&&f.z<=1&&f.w1<5);
