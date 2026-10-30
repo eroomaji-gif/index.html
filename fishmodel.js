@@ -35,7 +35,9 @@
   const CACHE = {};
   const loader = new THREE.GLTFLoader();
   keys.forEach(key => {
-  loader.parse(MODELS.buffer(key), '', gltf => {
+  let buf;
+  try { buf = MODELS.buffer(key); } catch (e) { console.warn('fishmodel: ไม่มี key', key); return; }
+  loader.parse(buf, '', gltf => {
       const root = gltf.scene;
       root.updateMatrixWorld(true);
       const box = new THREE.Box3().setFromObject(root), size = new THREE.Vector3(), ctr = new THREE.Vector3();
