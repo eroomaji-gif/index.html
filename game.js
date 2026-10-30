@@ -332,64 +332,7 @@ function buildRot(d){G.gYaw+=d*Math.PI/12;}
 function buildMode(){G.gMode=(G.gMode+1)%3;}
 function buildH(d){G.gOff=clamp(G.gOff+d*.2,-1.5,4);}
 
-  /* ===== ระบบเลเซอร์ยกท่อนไม้ + หมุน XYZ ===== */
-let heldLog = null; // ท่อนไม้ที่โดนเลเซอร์จับอยู่
-
-// อัปเดตตำแหน่งท่อนไม้ให้ลอยตามมุมกล้อง
-function updateGrabbedLog(dt){
-  if(!heldLog) return;
-  camera.getWorldPosition(_v);
-  camera.getWorldDirection(_v2);
-  const targetPos = _v.clone().addScaledVector(_v2, 3.8); // ลอยอยู่หน้ากล้อง 3.8 เมตร
-  heldLog.mesh.position.lerp(targetPos, Math.min(1, dt * 12));
-}
-
-// อัปเดตปุ่มควบคุมบน UI
-function updBuildBar(){
-  const b = $('buildbar');
-  if(heldLog){
-    b.style.display = 'flex';
-    b.innerHTML = `<button onpointerdown="rotateGrabbedLog('x')">🔄 หมุน X</button>` +
-                `<button onpointerdown="rotateGrabbedLog('y')">🔄 หมุน Y</button>` +
-                `<button onpointerdown="rotateGrabbedLog('z')">🔄 หมุน Z</button>` +
-                `<button onpointerdown="placeGrabbedLog()" style="background:#22c55e;font-weight:bold;">📍 วางลง</button>`;
-  } else if(P.carry){
-    b.style.display = 'flex';
-    b.innerHTML = `<button onpointerdown="buildRot(-1)">⟲</button><button onpointerdown="buildRot(1)">⟳</button><button onpointerdown="buildMode()">↕ ท่า</button><button onpointerdown="buildH(1)">▲</button><button onpointerdown="buildH(-1)">▼</button><button onpointerdown="dropLog()">ทิ้ง</button>`;
-  } else if(S.tool === 'shovel'){
-    b.style.display = 'flex';
-    b.innerHTML = `<button onpointerdown="toggleShovel()">${G.shovel==='dig'?'⛏️ โหมดขุด':'🟫 โหมดถม'} (แตะสลับ)</button>`;
-  } else {
-    b.style.display = 'none';
-  }
-}
-
-// หมุนท่อนไม้ตามแกน X, Y, Z ครั้งละ 45 องศา
-function rotateGrabbedLog(axis){
-  if(!heldLog) return;
-  const rad = Math.PI / 4;
-  if(axis === 'x') heldLog.mesh.rotateX(rad);
-  if(axis === 'y') heldLog.mesh.rotateY(rad);
-  if(axis === 'z') heldLog.mesh.rotateZ(rad);
-}
-
-// เล็งแล้วกดเลเซอร์ยกท่อนไม้ (รักษาองศาเดิมตอนล้มไว้เป๊ะๆ)
-function grabLogWithLaser(e){
-  removeLog(e); // เอาออกจากวัตถุบนพื้นชั่วคราว
-  heldLog = e;
-  updBuildBar();
-  toast('🔫 ใช้เลเซอร์ยกท่อนไม้แล้ว! หมุนปรับแกน XYZ ได้เลย');
-}
-
-// วางท่อนไม้ลงพื้น
-function placeGrabbedLog(){
-  if(!heldLog) return;
-  addLog(heldLog.mesh.position.clone(), heldLog.mesh.quaternion.clone(), heldLog.len, heldLog.r);
-  scene.remove(heldLog.mesh);
-  heldLog = null;
-  updBuildBar();
-  toast('📍 วางท่อนไม้เรียบร้อย');
-}
+  
   
 /* ---------- ฝนปลา ---------- */
 const RF=[],RFSP=FISH.filter(f=>f.r<=1&&f.z<=1&&f.w1<5);
