@@ -158,27 +158,79 @@ function updateFishing(dt,time){
       if(u>=1){FS.state='bite';FS.t=0;}break;}
     case 'bite':{FS.hook.y=-FS.depth+Math.sin(time*40)*.12;FS.fm.position.set(FS.hook.x+FS.len*.5,FS.hook.y,FS.hook.z);
       txt='❗ กดเดี๋ยวนี้! ❗';alert=true;if(FS.t>1.5){toast('ปลาหนีไปแล้ว...');scene.remove(FS.fm);FS.fm=null;FS.state='wait';FS.waitT=3+Math.random()*5;}break;}
-    case 'fight':{
-      const f=clamp(.6+FS.rho*.9,.6,3),mult=FS.rho>1?1+(FS.rho-1)*2:1,reel=inp.act;
-      FS.pullT-=dt;if(FS.pullT<=0){FS.pull=!FS.pull;FS.pullT=FS.pull?.9+Math.random():1.2+Math.random()*2;}
+        case 'fight':{
+      const f=clamp(.6+FS.rho*.9,.6,3), mult=FS.rho>1?1+(FS.rho-1)*2:1, reel=inp.act;
+      FS.pullT-=dt;
+      if(FS.pullT<=0){
+        FS.pull=!FS.pull;
+        FS.pullT=FS.pull?.9+Math.random():1.2+Math.random()*2;
+        // สลับทิศทางที่ปลาพยายามดึงสายหนี
+        FS.fa += (Math.random() - 0.5) * 2.5;
+      }
+      
+      // ให้ปลาว่ายดึงสายเบ็ดไปรอบๆ ตามทิศทางที่มันดิ้น
+      const pullForce = FS.pull ? 1.5 : 0.6;
+      FS.hook.x += Math.cos(FS.fa) * pullForce * dt * 2;
+      FS.hook.z += Math.sin(FS.fa) * pullForce * dt * 2;
+      
       let dT,dP;
       if(FS.pull){if(reel){dT=40*f*mult;dP=-4;}else{dT=f*mult*3-10;dP=-6*f;}}
       else{if(reel){dT=14*f*mult;dP=16/(1+FS.rho*1.5);}else{dT=-35;dP=-2;}}
       if(FS.doom)dT+=45;
-      FS.tens=clamp(FS.tens+dT*dt,0,100);FS.p+=dP*dt;
-      FS.fa+=dt*(FS.pull?3.2:1.2);
-      const rr=lerp(FS.len*1.2+4,FS.len*.25+.7,clamp(FS.p/100,0,1));
-      FS.fm.position.set(FS.hook.x+Math.cos(FS.fa)*rr,FS.hook.y+Math.sin(FS.fa*1.7)*rr*.15,FS.hook.z+Math.sin(FS.fa)*rr);
-      FS.fm.rotation.y=Math.atan2(-Math.cos(FS.fa),-Math.sin(FS.fa));FS.fm.userData.tail.rotation.y=Math.sin(time*(FS.pull?22:9))*.7;
-      FS.hook.y=-FS.depth+Math.sin(time*(FS.pull?30:6))*(FS.pull?.15:.05);
-      tens=FS.tens;prog=FS.p;alert=FS.pull;txt=FS.pull?'⚠️ ปลากระชาก! ปล่อยปุ่ม!':(reel?'กำลังดึง...':'กดค้างเพื่อดึง');
+      
+      FS.tens=clamp(FS.tens+dT*dt,0,100);
+      FS.p+=dP*dt;
+      
+      // ให้ตัวปลาขยับว่ายวนรอบตะขอตามแรงดึง
+      const rr=lerp(FS.len*1.2+2,FS.len*.25+.5,clamp(FS.p/100,0,1));
+      FS.fm.position.set(FS.hook.x+Math.cos(FS.fa)*rr, FS.hook.y+Math.sin(FS.fa*1.7)*rr*.15, FS.hook.z+Math.sin(FS.fa)*rr);
+      FS.fm.rotation.y=Math.atan2(-Math.cos(FS.fa),-Math.sin(FS.fa));
+      FS.fm.userData.tail.rotation.y=Math.sin(time*(FS.pull?22:9))*.7;
+      
+      tens=FS.tens; prog=FS.p; alert=FS.pull;
+      txt=FS.pull?'⚠️ ปลากระชากสายหนี! ปล่อยปุ่ม!':(reel?'กำลังดึงสายกลับ...':'กดค้างเพื่อดึง');
+      
       if(FS.tens>=100){if(FS.rho>1){rodBreak();return;}toast('สายขาด! ปลาหลุดไป',2500);fishRetrieve();break;}
       if(FS.p<=0){toast('ปลาหลุดไปแล้ว...');fishRetrieve();break;}
       if(FS.p>=100){landFish();break;}
       break;}
-    case 'landed':{FS.fm&&FS.fm.position.set(FS.hook.x,FS.hook.y+Math.min(FS.t,1)*3,FS.hook.z);if(FS.t>1.8)fishRetrieve();break;}
-    case 'retrieve':{const u=Math.min(1,FS.t/.8);rodTipPos(_v);FS.hook.lerpVectors(FS.start,_v,u);FS.hook.y=Math.max(FS.hook.y,FS.start.y*(1-u)+_v.y*u);if(u>=1){fishEnd();return;}txt='เก็บเบ็ด';break;}
-  }
+
+    case 'landed':{
+      // ดึงปลาขึ้นพร้อมกับให้ตัวปลาติดอยู่ที่ตะขอ
+      const u = Math.min(1, FS.t / 1.5);
+      rodTipPos(_v);
+      FS.hook.lerpVectors(FS.start, _v, u);
+      if(FS.fm){
+        FS.fm.position.copy(FS.hook);
+        FS.fm.rotation.y += dt * 6;
+      }
+      if(FS.t > 1.6){
+        fishRetrieve(null, true);
+      }
+      txt='✨ สำเร็จ! กำลังดึงปลาขึ้นมา...';
+      break;
+    }
+
+    case 'retrieve':{
+      const u=Math.min(1,FS.t/.8);
+      rodTipPos(_v);
+      FS.hook.lerpVectors(FS.start,_v,u);
+      FS.hook.y=Math.max(FS.hook.y,FS.start.y*(1-u)+_v.y*u);
+      
+      if(FS.fm){
+        FS.fm.position.copy(FS.hook);
+        FS.fm.rotation.y += dt * 5;
+      }
+
+      if(u>=1){
+        if(FS.fm){scene.remove(FS.fm);FS.fm=null;}
+        fishEnd();
+        return;
+      }
+      txt=FS.fm?'เก็บปลาเข้ากระเป๋า...':'เก็บเบ็ด';
+      break;
+    }
+
   hudFish({show:true,txt,tens,prog,alert});
   // งอคัน
   const tgt=FS.state==='fight'?(FS.tens/100)*1.3+(FS.doom?.3:0):(FS.state==='bite'?.35:.05);
