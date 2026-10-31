@@ -9,8 +9,19 @@
    ถ้าไฟล์ไหนโหลดไม่ได้ ของเก่าในเกมจะยังอยู่ตามเดิม ไม่พัง
    ===================================================================== */
 (function(){
+/* กล่องสถานะมุมซ้ายบน (ไว้ดูบนมือถือที่เปิด Console ไม่ได้) — ถ้าไม่มีข้อผิดพลาดจะหายเองใน 6 วินาที
+   ไม่ต้องการแล้วเปลี่ยน SHOW_STATUS เป็น false */
+const SHOW_STATUS=true;let box=null,bad=false;
+function note(msg,isBad){
+  if(!SHOW_STATUS||typeof document==='undefined'||!document.body)return;
+  if(!box){box=document.createElement('div');box.style.cssText='position:fixed;left:4px;top:4px;z-index:99999;max-width:92vw;padding:4px 8px;font:12px/1.4 sans-serif;color:#fff;background:rgba(0,0,0,.7);border-radius:6px;white-space:pre-wrap;word-break:break-all';
+    box.onclick=()=>box.remove();document.body.appendChild(box);}
+  if(isBad)bad=true;box.textContent+=(box.textContent?'\n':'')+msg;
+  clearTimeout(box._t);if(!bad)box._t=setTimeout(()=>box.remove(),6000);
+}
 if(typeof TREES==='undefined'||typeof scene==='undefined'||typeof applySeason==='undefined'){
-  console.error('[models] ต้องใส่ models.js ต่อจาก world.js');return;}
+  console.error('[models] ต้องใส่ models.js ต่อจาก world.js');note('models.js: ต้องใส่ต่อจาก world.js ใน index.html',1);return;}
+note('models.js ทำงานแล้ว'+(typeof PLANTS==='undefined'?' (ไม่พบ plants.js → จะลองอ่านไฟล์ .glb)':''),typeof PLANTS==='undefined');
 
 const DIR='';                        // '' = ไฟล์ .glb วางโฟลเดอร์เดียวกับหน้าเว็บ (ถ้าจะใช้โฟลเดอร์ ใส่เช่น 'models/')
 const MAXTEX=isMobile?512:1024;      // ย่อรูปพื้นผิวไม่ให้ใหญ่เกินนี้ (ประหยัดแรมมือถือ)
@@ -271,7 +282,7 @@ async function doPalms(){
 }
 
 /* ---------- เริ่มโหลด (แต่ละอย่างโหลดแยกกัน พังอันหนึ่งไม่กระทบอันอื่น) ---------- */
-const run=(name,fn)=>fn().catch(e=>console.warn('[models] '+name+' โหลดไม่สำเร็จ — ใช้ของเดิมต่อ:',e));
+const run=(name,fn)=>fn().then(()=>note(name+' ✓')).catch(e=>{console.warn('[models] '+name+' โหลดไม่สำเร็จ — ใช้ของเดิมต่อ:',e);note(name+' ✗ '+(e&&e.message||e),1);});
 WM.ready=Promise.all([run('trees',doTrees),run('bushes',doBushes),run('grass',doGrass),run('flowers',doFlowers),run('palms',doPalms)])
   .then(()=>{WM.season(seasonIdx);console.log('[models] เสร็จ');});
 WM._parse=parseGLB;WM._load=load;
