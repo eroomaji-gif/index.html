@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>อุณหภูมิบ้านเรา</title>
+<style>
+  body{font-family: system-ui; background:#f0f6ff; margin:0; display:flex; align-items:center; justify-content:center; min-height:100vh;}
+  .card{background:white; width:90%; max-width:380px; padding:28px; border-radius:24px; box-shadow:0 10px 30px rgba(0,0,0,0.1); text-align:center;}
+  .temp{font-size:72px; font-weight:800; margin:10px 0; color:#1a56db;}
+  .province{font-size:22px; font-weight:600;}
+  .desc{color:#666; margin-top:4px;}
+  .meta{display:flex; justify-content:space-around; margin-top:20px; background:#f7f9ff; padding:16px; border-radius:16px;}
+  .meta div b{display:block; font-size:18px;}
+  button{border:none; background:#1a56db; color:white; padding:12px 20px; border-radius:12px; font-size:16px; cursor:pointer; width:100%;}
+  button.secondary{background:#eef2ff; color:#1a56db;}
+  button:disabled{opacity:0.6;}
+
+  /* Popup ขออนุญาต */
+  #permissionOverlay{position:fixed; inset:0; background:rgba(15,23,42,0.6); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; z-index:99; padding:20px;}
+  #permissionBox{background:white; max-width:360px; width:100%; padding:28px; border-radius:20px; text-align:center; animation:pop .3s ease;}
+  @keyframes pop{from{transform:scale(0.9); opacity:0} to{transform:scale(1); opacity:1}}
+  #permissionBox h2{margin:0 0 8px 0;}
+  #permissionBox p{color:#555; font-size:15px; line-height:1.6; margin-bottom:20px;}
+</style>
+</head>
+<body>
+
+<!-- 1. หน้าขออนุญาต -->
+<div id="permissionOverlay">
+  <div id="permissionBox">
+    <div style="font-size:48px">📍</div>
+    <h2>ขออนุญาตเข้าถึงตำแหน่ง</h2>
+    <p>เว็บนี้จะใช้ตำแหน่งของคุณเพื่อหาจังหวัดที่คุณอยู่ และแสดงอุณหภูมิของจังหวัดนั้นๆ<br>เราจะไม่เก็บตำแหน่งของคุณไว้</p>
+    <button id="allowBtn" onclick="handleAllow()">อนุญาตให้เข้าถึงตำแหน่ง</button>
+    <button class="secondary" style="margin-top:10px" onclick="useBangkok()">ข้ามไปดูกรุงเทพฯ</button>
+    <div style="margin-top:12px; font-size:12px; color:#888;">ต้องเปิดเว็บผ่าน https ถึงจะขอตำแหน่งได้</div>
+  </div>
+</div>
+
+<!-- 2. หน้าเว็บหลัก -->
+<div class="card">
+  <div id="status" class="desc">ยังไม่ได้เริ่ม</div>
+  <div id="province" class="province">-</div>
+  <div id="temp" class="temp">--°</div>
+  <div id="weather" class="desc">-</div>
+  <div class="meta">
+    <div><span>รู้สึกเหมือน</span><b id="feel">--°</b></div>
+    <div><span>ความชื้น</span><b id="humid">--%</b></div>
+    <div><span>ลม</span><b id="wind">--</b></div>
+  </div>
+  <button id="refreshBtn" onclick="getLocation()" style="margin-top:20px">รีเฟรชตำแหน่ง</button>
+</div>
+
+<script>
+const weatherCodeMap = {0:'ฟ้าใส',1:'ฟ้าใสเป็นส่วนใหญ่',2:'มีเมฆบางส่วน',3:'เมฆครึ้ม',45:'มีหมอก',51:'ฝนปรอยเบา',61:'ฝนเบา',63:'ฝนปานกลาง',65:'ฝนหนัก',80:'ฝนซู่เบา',95:'ฝนฟ้าคะนอง'};
+
+function handleAllow(){
+  document.getElementById('allowBtn').innerText = 'กำลังขออนุญาต...';
+  document.getElementById('allowBtn').disabled = true;
+  getLocation();
+}
+
+function useBangkok(){
+  document.getElementById('permissionOverlay').style.display = 'none';
+  fallbackBangkok();
+}
+
+function getLocation(){
+  if(!navigator.geolocation){
+    document.getElementById('permissionOverlay').style.display = 'none';
+    fallbackBangkok();
+    return;
+  }
+  navigator.geolocation.getCurrentPosition( (pos)=>{
+    document.getElementById('permissionOverlay').style.display = 'none';
+    success(pos);
+  }, (err)=>{
+    document.getElementById('permissionOverlay').style.display = 'none';
+    document.getElementById('status').innerText = 'คุณไม่อนุญาต จะแสดงของกรุงเทพฯแทน';
+    fallbackBangkok();
+  }, {enableHighAccuracy:true});
+}
+
+async function success(pos){
+  const lat = pos.coords.latitude;
+  const lon = pos.coords.longitude;
+  document.getElementById('status').innerText = `พิกัด ${lat.toFixed(3)}, ${lon.toFixed(3)}`;
+  try{
+    const rev = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=th`).then(r=>r.json());
+    const province = rev.principalSubdivision || rev.city || 'ประเทศไทย';
+    document.getElementById('province').innerText = rev.locality ? `${rev.locality}, ${province}` : province;
+
+    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&timezone=Asia%2FBangkok`;
+    const weather = await fetch(weatherUrl).then(r=>r.json());
+    const cur = weather.current;
+    document.getElementById('temp').innerText = `${Math.round(cur.temperature_2m)}°`;
+    document.getElementById('feel').innerText = `${Math.round(cur.apparent_temperature)}°`;
+    document.getElementById('humid').innerText = `${cur.relative_humidity_2m}%`;
+    document.getElementById('wind').innerText = `${cur.wind_speed_10m} km/h`;
+    document.getElementById('weather').innerText = weatherCodeMap[cur.weather_code] || 'สภาพอากาศ';
+  }catch(e){
+    document.getElementById('status').innerText = 'ดึงข้อมูลไม่สำเร็จ';
+  }
+}
+
+async function fallbackBangkok(){
+  success({coords:{latitude:13.7563, longitude:100.5018}});
+}
+</script>
+</body>
+</html>
