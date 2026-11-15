@@ -1,126 +1,192 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>สภาพอากาศ - ชลบุรี</title>
-<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sky Live - อากาศสด</title>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;500;700&display=swap" rel="stylesheet">
 <style>
-  *{font-family:'Kanit',system-ui; box-sizing:border-box}
-  body{margin:0; min-height:100vh; background: radial-gradient(120% 120% at 20% 10%, #7ec8ff 0%, #3a7bff 40%, #1a2a6c 100%); display:flex; align-items:center; justify-content:center; color:white; padding:16px;}
-  .app{width:100%; max-width:420px;}
-  
-  /* การ์ดหลัก */
-  .main-card{background:linear-gradient(180deg, rgba(255,255,255,0.25), rgba(255,255,255,0.08)); backdrop-filter: blur(20px); border:1px solid rgba(255,255,255,0.2); border-radius:32px; padding:28px 24px; box-shadow:0 20px 60px rgba(0,0,0,0.25); text-align:center; position:relative; overflow:hidden;}
-  .main-card::before{content:''; position:absolute; top:-80px; right:-80px; width:200px; height:200px; background: radial-gradient(circle, rgba(255,255,255,0.4), transparent 70%); pointer-events:none;}
-  
-  .location{display:flex; align-items:center; justify-content:center; gap:6px; font-size:18px; font-weight:600; opacity:0.95;}
-  .coords{font-size:11px; opacity:0.6; margin-top:2px; letter-spacing:0.5px;}
-  .icon{font-size:80px; margin:10px 0; filter: drop-shadow(0 10px 20px rgba(255,255,255,0.5));}
-  .temp{font-size:96px; font-weight:700; line-height:1; letter-spacing:-3px; margin:0;}
-  .condition{font-size:18px; margin-top:6px; opacity:0.9;}
-  .highlow{font-size:14px; opacity:0.7; margin-top:4px;}
+*{font-family:'Kanit';box-sizing:border-box} body{margin:0;min-height:100vh;overflow:hidden; background:#000;}
+#scene{position:fixed; inset:0; transition:background 1.5s ease;}
+#scene.day-clear{background:radial-gradient(120% 120% at 30% 20%, #fff7a0 0%, #7ec8ff 30%, #2a7bff 100%);}
+#scene.day-cloudy{background:linear-gradient(180deg,#8fb5d6 0%,#5a7fa3 100%);}
+#scene.day-overcast{background:linear-gradient(180deg,#6b7280 0%,#374151 100%);}
+#scene.day-rain{background:linear-gradient(180deg,#4b5a6b 0%,#2a3441 100%);}
+#scene.night{background:radial-gradient(100% 100% at 50% 0%, #2a3441 0%, #0b1220 60%, #02040a 100%);}
+#scene.night-bright{background:radial-gradient(100% 100% at 50% 20%, #3a4a6a 0%, #141d32 60%, #070a14 100%);}
 
-  .details{display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:24px;}
-  .detail-item{background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.15); border-radius:18px; padding:14px 8px;}
-  .detail-item span{display:block; font-size:12px; opacity:0.7;}
-  .detail-item b{font-size:18px; font-weight:600; margin-top:2px; display:block;}
+canvas{position:absolute; inset:0; pointer-events:none;}
 
-  .hourly{margin-top:20px; background:rgba(0,0,0,0.2); backdrop-filter: blur(20px); border-radius:24px; padding:16px; border:1px solid rgba(255,255,255,0.1);}
-  .hourly-title{font-size:13px; opacity:0.7; text-align:left; margin-bottom:12px; display:flex; align-items:center; gap:6px;}
-  .hourly-grid{display:flex; justify-content:space-between; overflow-x:auto; gap:4px;}
-  .hour{flex:1; text-align:center;}
-  .hour small{font-size:12px; opacity:0.6; display:block;}
-  .hour div{font-size:16px; font-weight:600; margin-top:4px;}
+.sun{position:absolute; top:12%; left:50%; width:120px; height:120px; transform:translateX(-50%); border-radius:50%; background:radial-gradient(circle, #fffde7 0%, #ffeb3b 35%, #ff9800 100%); box-shadow:0 0 60px 30px rgba(255,235,59,0.6), 0 0 120px 60px rgba(255,152,0,0.3); animation: sunFloat 6s ease-in-out infinite, sunRotate 60s linear infinite;}
+.sun::after{content:''; position:absolute; inset:-20px; border-radius:50%; background:radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 70%); animation: pulse 3s infinite;}
+@keyframes sunFloat{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-12px)}} 
+@keyframes sunRotate{from{transform:translateX(-50%) rotate(0deg)} to{transform:translateX(-50%) rotate(360deg)}}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:0.6}50%{transform:scale(1.15);opacity:0.3}}
 
-  button.main-btn{width:100%; margin-top:20px; background:white; color:#1a56db; border:none; padding:14px; border-radius:16px; font-weight:600; font-size:15px; cursor:pointer; box-shadow:0 10px 20px rgba(0,0,0,0.15); transition:0.2s;}
-  button.main-btn:active{transform:scale(0.97);}
+.moon{position:absolute; top:14%; left:50%; width:110px; height:110px; transform:translateX(-50%); border-radius:50%; background:#f5f3e8; box-shadow:0 0 40px 15px rgba(255,255,255, var(--glow,0.4)), inset -10px -10px 20px rgba(0,0,0,0.2); animation: moonFloat 8s ease-in-out infinite, sunRotate 120s linear infinite; overflow:hidden;}
+.moon .shadow{position:absolute; inset:0; background:#0b1220; border-radius:50%; transition:all 1s ease; mix-blend-mode:multiply; opacity:0.95;}
+.moon::before{content:''; position:absolute; inset:-30px; background:radial-gradient(circle, rgba(255,255,255,var(--glow)) 0%, transparent 70%); animation: twinkle 2s infinite;}
+@keyframes moonFloat{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-8px)}}
+@keyframes twinkle{0%,100%{opacity:0.6}50%{opacity:1}}
 
-  /* Popup ขออนุญาต */
-  #permissionOverlay{position:fixed; inset:0; background:rgba(10,20,50,0.6); backdrop-filter:blur(16px); display:flex; align-items:center; justify-content:center; z-index:99; padding:20px;}
-  #permissionBox{background:white; color:#1a2a3a; max-width:340px; width:100%; padding:32px 24px; border-radius:28px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.3);}
-  #permissionBox p{color:#666; font-size:14px; line-height:1.6;}
+.cloud{position:absolute; background:rgba(255,255,255,0.9); border-radius:50px; filter:blur(0.5px); animation: cloudMove linear infinite;}
+.cloud.dark{background:rgba(80,90,105,0.9);}
+.cloud::before,.cloud::after{content:''; position:absolute; background:inherit; border-radius:50%;}
+@keyframes cloudMove{from{transform:translateX(-200px)} to{transform:translateX(120vw)}}
+
+.glass{position:relative; z-index:10; width:90%; max-width:380px; margin:32vh auto 0; background:rgba(255,255,255,0.15); backdrop-filter:blur(18px); border:1px solid rgba(255,255,255,0.2); border-radius:28px; padding:22px; text-align:center; color:white; box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+.temp{font-size:80px; font-weight:700; line-height:1}
+.moon-info{font-size:13px; opacity:0.8; margin-top:6px;}
+.water-drop{position:absolute; width:18px; height:26px; background:linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.2)); border-radius:50% 50% 50% 50% / 60% 60% 40% 40%; backdrop-filter:blur(2px); animation: dropSlide 4s linear infinite; pointer-events:none; z-index:20;}
+@keyframes dropSlide{0%{transform:translateY(-20px)}100%{transform:translateY(110vh)}}
 </style>
 </head>
 <body>
-<div id="permissionOverlay">
-  <div id="permissionBox">
-    <div style="font-size:56px">🌤️</div>
-    <h2 style="margin:12px 0 6px">เช็คอากาศบ้านคุณ</h2>
-    <p>เราจะใช้ตำแหน่งเพื่อแสดงอุณหภูมิของจังหวัดที่คุณอยู่จริงๆ แบบเรียลไทม์<br>เราไม่เก็บข้อมูลตำแหน่งของคุณ</p>
-    <button class="main-btn" style="background:#1a56db; color:white" onclick="handleAllow()">อนุญาตและเข้าสู่เว็บไซต์</button>
-    <button onclick="useBangkok()" style="background:none; border:none; color:#888; margin-top:12px; font-size:13px; cursor:pointer; width:100%">ดูของกรุงเทพฯไปก่อน</button>
-  </div>
+<div id="scene" class="day-clear">
+  <canvas id="rainCanvas"></canvas>
+  <canvas id="snowCanvas"></canvas>
+  <div id="sun" class="sun" style="display:none"></div>
+  <div id="moon" class="moon" style="display:none"><div id="moonShadow" class="shadow"></div></div>
+  <div id="clouds"></div>
+  <div id="drops"></div>
 </div>
 
-<div class="app">
-  <div class="main-card">
-    <div class="location">📍 <span id="province">กำลังค้นหา...</span></div>
-    <div id="coords" class="coords">-</div>
-    <div id="icon" class="icon">☀️</div>
-    <div id="temp" class="temp">--°</div>
-    <div id="weather" class="condition">-</div>
-    <div class="highlow" id="status">-</div>
-    
-    <div class="details">
-      <div class="detail-item"><span>รู้สึกเหมือน</span><b id="feel">--°</b></div>
-      <div class="detail-item"><span>ความชื้น</span><b id="humid">--%</b></div>
-      <div class="detail-item"><span>ลม</span><b id="wind">--</b></div>
-    </div>
+<div class="glass">
+  <div id="loc" style="font-weight:600">📍 กำลังหา...</div>
+  <div id="temp" class="temp">--°</div>
+  <div id="cond">-</div>
+  <div id="moonInfo" class="moon-info"></div>
+  <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:16px; font-size:13px">
+    <div>รู้สึกเหมือน<br><b id="feel">--°</b></div>
+    <div>ความชื้น<br><b id="humid">--%</b></div>
+    <div>ลม<br><b id="wind">--</b></div>
   </div>
-
-  <div class="hourly">
-    <div class="hourly-title">⏰ พยากรณ์รายชั่วโมง (จากโมเดล)</div>
-    <div class="hourly-grid" id="hourlyGrid">กำลังโหลด...</div>
-  </div>
-
-  <button class="main-btn" onclick="getLocation()">รีเฟรชตำแหน่งอีกครั้ง</button>
+  <button onclick="getLocation()" style="width:100%; margin-top:16px; padding:12px; border-radius:14px; border:none; background:white; color:#1a56db; font-weight:600; cursor:pointer">รีเฟรช</button>
 </div>
 
 <script>
-const icons = {0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',51:'🌦️',61:'🌧️',63:'🌧️',65:'⛈️',80:'🌦️',95:'⛈️'};
-const weatherCodeMap = {0:'ฟ้าใส',1:'ฟ้าใสเป็นส่วนใหญ่',2:'มีเมฆบางส่วน',3:'เมฆครึ้ม',45:'มีหมอก',51:'ฝนปรอยเบา',61:'ฝนเบา',63:'ฝนปานกลาง',65:'ฝนหนัก',80:'ฝนซู่เบา',95:'ฝนฟ้าคะนอง'};
-
-function handleAllow(){
-  getLocation();
-  document.getElementById('permissionOverlay').style.display='none';
+// คำนวณ % พระจันทร์จริง
+function getMoonIllumination(date){
+  const knownNew = new Date('2000-01-06T18:14:00Z').getTime();
+  const lunarCycle = 29.53058867*24*3600*1000;
+  const phase = ((date.getTime() - knownNew) % lunarCycle) / lunarCycle;
+  const fraction = (1 - Math.cos(phase*2*Math.PI))/2;
+  return {fraction, phase};
 }
-function useBangkok(){
-  document.getElementById('permissionOverlay').style.display='none';
-  fallbackBangkok();
-}
-function getLocation(){
-  document.getElementById('province').innerText='กำลังหาตำแหน่ง...';
-  navigator.geolocation.getCurrentPosition(p=>success(p), e=>fallbackBangkok(), {enableHighAccuracy:true});
-}
-async function success(pos){
-  document.getElementById('permissionOverlay').style.display='none';
-  const lat=pos.coords.latitude, lon=pos.coords.longitude;
-  document.getElementById('coords').innerText=`พิกัด ${lat.toFixed(3)}, ${lon.toFixed(3)}`;
-  const rev = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=th`).then(r=>r.json());
-  const province = rev.principalSubdivision || rev.city || 'ประเทศไทย';
-  document.getElementById('province').innerText = rev.locality ? `${rev.locality}, ${province}` : province;
 
-  const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&hourly=temperature_2m,weather_code&timezone=Asia%2FBangkok`;
-  const data = await fetch(url).then(r=>r.json());
-  const cur=data.current;
-  document.getElementById('temp').innerText=`${Math.round(cur.temperature_2m)}°`;
-  document.getElementById('feel').innerText=`${Math.round(cur.apparent_temperature)}°`;
-  document.getElementById('humid').innerText=`${cur.relative_humidity_2m}%`;
-  document.getElementById('wind').innerText=`${cur.wind_speed_10m} km/h`;
-  document.getElementById('weather').innerText=weatherCodeMap[cur.weather_code]||'สภาพอากาศ';
-  document.getElementById('icon').innerText=icons[cur.weather_code]||'☀️';
-  document.getElementById('status').innerText=`อัพเดทเมื่อ ${new Date().toLocaleTimeString('th-TH')} น.`;
-
-  // ชั่วโมงถัดไป
-  let html='';
-  for(let i=0; i<5; i++){
-    const time = new Date(data.hourly.time[i+1]);
-    html+=`<div class="hour"><small>${time.getHours()}:00</small><div>${icons[data.hourly.weather_code[i+1]]||'☀️'}</div><div>${Math.round(data.hourly.temperature_2m[i+1])}°</div></div>`;
+function updateMoonVisual(fraction, phase){
+  const moon = document.getElementById('moon');
+  const shadow = document.getElementById('moonShadow');
+  const glow = 0.2 + fraction*0.6;
+  moon.style.setProperty('--glow', glow);
+  // แหว่งตาม phase
+  if(phase<0.5){
+    shadow.style.left = `${(1-fraction*2)*100}%`;
+    shadow.style.width = '100%';
+  }else{
+    shadow.style.left = `-${(1-(1-fraction)*2)*100}%`;
+    shadow.style.width = '100%';
   }
-  document.getElementById('hourlyGrid').innerHTML=html;
+  document.getElementById('moonInfo').innerText = `🌙 พระจันทร์ ${Math.round(fraction*100)}% ${fraction>0.95?'เต็มดวง':fraction>0.5?'ข้างขึ้น':fraction>0.05?'ครึ่งเสี้ยว':'มืด'}`;
 }
-function fallbackBangkok(){ success({coords:{latitude:13.7563, longitude:100.5018}}); }
+
+function setScene(weatherCode, isDay, wind, temp){
+  const scene = document.getElementById('scene');
+  const sun = document.getElementById('sun');
+  const moon = document.getElementById('moon');
+  const cloudsBox = document.getElementById('clouds');
+  cloudsBox.innerHTML='';
+
+  const now = new Date();
+  const moonData = getMoonIllumination(now);
+
+  if(isDay){
+    sun.style.display='block'; moon.style.display='none';
+    if(weatherCode<=1){ scene.className='day-clear'; }
+    else if(weatherCode<=3){ scene.className='day-cloudy'; createClouds(weatherCode, false); }
+    else if(weatherCode<=49){ scene.className='day-overcast'; createClouds(3, true); }
+    else { scene.className='day-rain'; createClouds(4, true); startRain(); }
+    if(temp>=36){ scene.style.filter='contrast(1.1) saturate(1.2)'; } // แดดจัดร้อนวูบวาบ
+  }else{
+    sun.style.display='none'; moon.style.display='block';
+    const brightClass = moonData.fraction>0.5 ? 'night-bright' : 'night';
+    scene.className=brightClass;
+    updateMoonVisual(moonData.fraction, moonData.phase);
+    scene.style.filter=`brightness(${0.6 + moonData.fraction*0.6})`;
+    if(weatherCode>=2) createClouds(weatherCode, true);
+  }
+
+  // ลมแรง
+  if(wind>15){ startWind(wind); } else { stopWind(); }
+  if(temp<=15){ startSnow(); } else { stopSnow(); }
+}
+
+function createClouds(count, dark){
+  const box=document.getElementById('clouds');
+  for(let i=0;i<count+2;i++){
+    const c=document.createElement('div');
+    c.className='cloud'+(dark?' dark':'');
+    c.style.top=`${10+Math.random()*35}%`;
+    c.style.width=`${80+Math.random()*120}px`;
+    c.style.height=`${30+Math.random()*30}px`;
+    c.style.left=`${Math.random()*100}%`;
+    c.style.animationDuration=`${20+Math.random()*40}s`;
+    c.style.animationDelay=`${Math.random()*5}s`;
+    c.style.opacity=dark?'0.7':'0.85';
+    // ถ้าเป็นแบบบังพระอาทิตย์ครึ่งนึง
+    if(i==0 && !dark){ c.style.top='14%'; c.style.left='52%'; c.style.animation='none'; c.style.width='140px'; c.style.transform='translateX(-50%)'; }
+    box.appendChild(c);
+  }
+}
+
+// เอฟเฟกต์ฝน
+let rainAnim;
+function startRain(){
+  const canvas=document.getElementById('rainCanvas'); const ctx=canvas.getContext('2d');
+  canvas.width=innerWidth; canvas.height=innerHeight;
+  const drops=Array.from({length:200},()=>({x:Math.random()*canvas.width, y:Math.random()*canvas.height, l:Math.random()*15+10, v:Math.random()*8+8}));
+  const waterBox=document.getElementById('drops'); waterBox.innerHTML='';
+  for(let i=0;i<12;i++){ const d=document.createElement('div'); d.className='water-drop'; d.style.left=Math.random()*100+'%'; d.style.animationDelay=Math.random()*3+'s'; waterBox.appendChild(d); }
+  function loop(){ ctx.clearRect(0,0,canvas.width,canvas.height); ctx.strokeStyle='rgba(255,255,255,0.5)'; ctx.lineWidth=1.5; drops.forEach(p=>{ ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(p.x-2,p.y+p.l); ctx.stroke(); p.y+=p.v; if(p.y>canvas.height){p.y=-20; p.x=Math.random()*canvas.width;} }); rainAnim=requestAnimationFrame(loop); } loop();
+}
+function stopRain(){ cancelAnimationFrame(rainAnim); document.getElementById('rainCanvas').getContext('2d').clearRect(0,0,innerWidth,innerHeight); }
+
+let windAnim;
+function startWind(speed){
+  const canvas=document.getElementById('rainCanvas'); const ctx=canvas.getContext('2d');
+  canvas.width=innerWidth; canvas.height=innerHeight;
+  const lines=Array.from({length:Math.min(80, speed*2)},()=>({x:Math.random()*canvas.width, y:Math.random()*canvas.height, v:speed/3+2}));
+  function loop(){ ctx.clearRect(0,0,canvas.width,canvas.height); ctx.strokeStyle='rgba(255,255,255,0.3)'; ctx.lineWidth=1; lines.forEach(l=>{ ctx.beginPath(); ctx.moveTo(l.x,l.y); ctx.lineTo(l.x+30,l.y+2); ctx.stroke(); l.x+=l.v; if(l.x>canvas.width){l.x=-30; l.y=Math.random()*canvas.height;} }); windAnim=requestAnimationFrame(loop); } loop();
+}
+function stopWind(){ cancelAnimationFrame(windAnim); }
+
+let snowAnim;
+function startSnow(){
+  const canvas=document.getElementById('snowCanvas'); const ctx=canvas.getContext('2d');
+  canvas.width=innerWidth; canvas.height=innerHeight;
+  const flakes=Array.from({length:80},()=>({x:Math.random()*canvas.width, y:Math.random()*canvas.height, r:Math.random()*3+1, v:Math.random()*1.5+0.5}));
+  function loop(){ ctx.clearRect(0,0,canvas.width,canvas.height); ctx.fillStyle='rgba(255,255,255,0.8)'; flakes.forEach(f=>{ ctx.beginPath(); ctx.arc(f.x,f.y,f.r,0,Math.PI*2); ctx.fill(); f.y+=f.v; if(f.y>canvas.height){f.y=-10; f.x=Math.random()*canvas.width;} }); snowAnim=requestAnimationFrame(loop); } loop();
+}
+function stopSnow(){ cancelAnimationFrame(snowAnim); }
+
+// ดึงอากาศ
+async function getLocation(){
+  document.getElementById('loc').innerText='📍 กำลังหาตำแหน่ง...';
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    const lat=pos.coords.latitude, lon=pos.coords.longitude;
+    const rev=await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=th`).then(r=>r.json());
+    document.getElementById('loc').innerText=`📍 ${rev.locality||''} ${rev.principalSubdivision||''}`;
+    const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,is_day&daily=sunrise,sunset&timezone=Asia%2FBangkok`;
+    const data=await fetch(url).then(r=>r.json());
+    const cur=data.current;
+    document.getElementById('temp').innerText=`${Math.round(cur.temperature_2m)}°`;
+    document.getElementById('feel').innerText=`${Math.round(cur.apparent_temperature)}°`;
+    document.getElementById('humid').innerText=`${cur.relative_humidity_2m}%`;
+    document.getElementById('wind').innerText=`${cur.wind_speed_10m} km/h`;
+    document.getElementById('cond').innerText={0:'ฟ้าใส แดดจัด',1:'ฟ้าใสเป็นส่วนใหญ่',2:'มีเมฆบางส่วน',3:'เมฆครึ้ม',45:'หมอก',61:'ฝนเบา',63:'ฝนปานกลาง',65:'ฝนหนัก',95:'พายุฝน'}[cur.weather_code]||'สภาพอากาศ';
+    setScene(cur.weather_code, cur.is_day==1, cur.wind_speed_10m, cur.temperature_2m);
+  },()=>{ document.getElementById('loc').innerText='ใช้กรุงเทพฯ'; setScene(1,1,5,32); });
+}
+getLocation();
 </script>
 </body>
 </html>
