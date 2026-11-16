@@ -38,12 +38,46 @@ canvas{position:absolute; inset:0; pointer-events:none;}
 .moon-info{font-size:13px; opacity:0.8; margin-top:6px;}
 .water-drop{position:absolute; width:18px; height:26px; background:linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.2)); border-radius:50% 50% 50% 50% / 60% 60% 40% 40%; backdrop-filter:blur(2px); animation: dropSlide 4s linear infinite; pointer-events:none; z-index:20;}
 @keyframes dropSlide{0%{transform:translateY(-20px)}100%{transform:translateY(110vh)}}
+
+/* ===== ดาวกลางคืน (กระจุกแถวพระจันทร์ แล้วค่อยๆ จางลงด้านล่าง) ===== */
+#stars{position:absolute; inset:0; pointer-events:none; opacity:0; transition:opacity 1.5s ease;}
+#stars.on{opacity:1;}
+.star{position:absolute; background:#fff; width:var(--s); height:var(--s);
+  clip-path:polygon(50% 0,60% 40%,100% 50%,60% 60%,50% 100%,40% 60%,0 50%,40% 40%);
+  opacity:var(--o); animation:starTwinkle var(--d) ease-in-out infinite; animation-delay:var(--dl);}
+@keyframes starTwinkle{
+  0%,100%{opacity:calc(var(--o)*0.25); transform:scale(0.7)}
+  50%{opacity:var(--o); transform:scale(1.1)}
+}
+
+/* ===== แตะตอนกลางคืน: เกิดดาว ===== */
+.tap-star{position:fixed; width:34px; height:34px; background:#fff6b0; z-index:5; pointer-events:none;
+  clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+  animation:tapStar 2.2s ease-out forwards;}
+@keyframes tapStar{
+  0%{transform:translate(-50%,-50%) scale(0) rotate(-90deg); opacity:0}
+  20%{transform:translate(-50%,-50%) scale(1.3) rotate(0deg); opacity:1}
+  100%{transform:translate(-50%,-50%) scale(0.8) rotate(30deg); opacity:0}
+}
+
+/* ===== แตะตอนกลางวัน: ไอร้อนลอยขึ้น ===== */
+.heat{position:fixed; width:80px; height:120px; z-index:5; pointer-events:none; border-radius:50%;
+  background:radial-gradient(ellipse at 50% 70%, rgba(255,215,150,0.6) 0%, rgba(255,160,80,0.25) 45%, transparent 70%);
+  filter:blur(8px); opacity:0; animation:heatRise 2.4s ease-out forwards;}
+@keyframes heatRise{
+  0%{transform:translate(-50%,-30%) scale(0.4); opacity:0}
+  20%{opacity:1}
+  50%{transform:translate(-44%,-90%) scale(1,1.3) skewX(7deg)}
+  75%{transform:translate(-56%,-140%) scale(1.1,1.6) skewX(-7deg)}
+  100%{transform:translate(-50%,-190%) scale(1.2,1.9); opacity:0}
+}
 </style>
 </head>
 <body>
 <div id="scene" class="day-clear">
   <canvas id="rainCanvas"></canvas>
   <canvas id="snowCanvas"></canvas>
+  <div id="stars"></div>
   <div id="sun" class="sun" style="display:none"></div>
   <div id="moon" class="moon" style="display:none"><div id="moonShadow" class="shadow"></div></div>
   <div id="clouds"></div>
@@ -89,6 +123,48 @@ function updateMoonVisual(fraction, phase){
   document.getElementById('moonInfo').innerText = `🌙 พระจันทร์ ${Math.round(fraction*100)}% ${fraction>0.95?'เต็มดวง':fraction>0.5?'ข้างขึ้น':fraction>0.05?'ครึ่งเสี้ยว':'มืด'}`;
 }
 
+// ดาวกลางคืน: กระจุกแถวพระจันทร์ (กลางบน) และจางหายลงด้านล่าง
+function showStars(){
+  const box=document.getElementById('stars'); box.innerHTML='';
+  for(let i=0;i<45;i++){
+    const y=Math.pow(Math.random(),1.8)*65;                          // % จากด้านบน (ส่วนใหญ่อยู่สูง)
+    const bell=(Math.random()+Math.random()+Math.random()-1.5)/1.5;  // กระจุกตรงกลาง
+    const x=50+bell*48;
+    const o=Math.max(0,1-y/65)*0.9;                                  // ยิ่งต่ำยิ่งจาง
+    if(o<0.08) continue;
+    const s=document.createElement('div'); s.className='star';
+    s.style.left=x+'%'; s.style.top=y+'%';
+    s.style.setProperty('--s',(3+Math.random()*5)+'px');
+    s.style.setProperty('--o',o.toFixed(2));
+    s.style.setProperty('--d',(1.5+Math.random()*2.5)+'s');
+    s.style.setProperty('--dl',(Math.random()*3)+'s');
+    box.appendChild(s);
+  }
+  box.classList.add('on');
+}
+function hideStars(){ document.getElementById('stars').classList.remove('on'); }
+
+// แตะที่พื้นหลัง: กลางคืน = ดาว / กลางวัน = ไอร้อนลอยขึ้น
+let isNightNow=false;
+document.addEventListener('pointerdown',e=>{
+  if(e.target.closest('.glass')) return; // ไม่นับตอนกดการ์ด/ปุ่ม
+  const scene=document.getElementById('scene');
+  if(isNightNow){
+    const t=document.createElement('div'); t.className='tap-star';
+    t.style.left=e.clientX+'px'; t.style.top=e.clientY+'px';
+    scene.appendChild(t);
+    setTimeout(()=>t.remove(),2300);
+  }else{
+    for(let i=0;i<3;i++){
+      const h=document.createElement('div'); h.className='heat';
+      h.style.left=(e.clientX+(i-1)*18)+'px'; h.style.top=e.clientY+'px';
+      h.style.animationDelay=(i*0.2)+'s';
+      scene.appendChild(h);
+      setTimeout(()=>h.remove(),3000);
+    }
+  }
+});
+
 function setScene(weatherCode, isDay, wind, temp){
   const scene = document.getElementById('scene');
   const sun = document.getElementById('sun');
@@ -118,6 +194,10 @@ function setScene(weatherCode, isDay, wind, temp){
   // ลมแรง
   if(wind>15){ startWind(wind); } else { stopWind(); }
   if(temp<=15){ startSnow(); } else { stopSnow(); }
+
+  // ดาวกลางคืน + โหมดการแตะ
+  isNightNow=!isDay;
+  if(isDay) hideStars(); else showStars();
 }
 
 function createClouds(count, dark){
