@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>แคลนฟรีไฟร์</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;800&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{--bg:#14110f;--card:#211b17;--line:#3a2e26;--tx:#f5ece4;--mut:#a39587;--ac:#ff7a1a;--ac2:#ffc247;--off:#4a4440}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:Kanit,system-ui,sans-serif;line-height:1.5;padding-bottom:40px}
+.marquee{background:var(--ac);color:#1a0e04;overflow:hidden;white-space:nowrap;padding:10px 0;font-weight:800;font-size:1.5rem}
+.marquee span{display:inline-block;padding-left:100%;animation:run 18s linear infinite}
+@keyframes run{to{transform:translateX(-100%)}}
+@media(prefers-reduced-motion:reduce){.marquee span{animation:none;padding-left:12px}}
+header{text-align:center;padding:28px 16px 8px}
+#logo{width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid var(--ac2);background:var(--card)}
+h1{margin:8px 0 0;font-size:2.2rem;font-weight:800}
+main{max-width:760px;margin:0 auto;padding:0 16px}
+section{margin-top:28px}
+h2{font-size:1.25rem;margin:0 0 12px;border-left:5px solid var(--ac);padding-left:10px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
+input,textarea{width:100%;background:var(--bg);color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:10px;font:inherit;margin-bottom:8px}
+input:focus,textarea:focus,button:focus-visible{outline:2px solid var(--ac2)}
+button{background:var(--ac);color:#1a0e04;border:0;border-radius:8px;padding:10px 18px;font:inherit;font-weight:600;cursor:pointer}
+button.alt{background:transparent;color:var(--tx);border:1px solid var(--line)}
+button:disabled{background:var(--off);color:var(--mut);cursor:not-allowed}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.rc{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.rc img{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:var(--bg)}
+.rc div{padding:12px}
+.rc b{display:block}.time{color:var(--ac2);font-weight:600;margin:4px 0 10px}
+.rc button{width:100%}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1;min-width:140px}
+.msg{border-bottom:1px solid var(--line);padding:10px 0}.msg small{color:var(--mut)}
+a{color:var(--ac2)}
+.hide{display:none}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;color:var(--mut)}
+.top span{display:flex;align-items:center;gap:8px}.top img{width:28px;height:28px;border-radius:50%}
+#gate{position:fixed;inset:0;background:rgba(10,8,6,.88);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
+#gate .box{max-width:360px;text-align:center}
+</style>
+</head>
+<body>
+
+<div id="gate" class="hide"><div class="box">
+  <h2 style="border:0;padding:0">ต้องเข้าสู่ระบบก่อน</h2>
+  <p>กรุณาเข้าสู่ระบบที่เว็บหลัก แล้วกดเข้าแคลนจากเว็บหลักอีกครั้ง</p>
+  <button onclick="location.href=CONFIG.MAIN_SITE_URL">ไปหน้าเข้าสู่ระบบ</button>
+</div></div>
+
+<div class="marquee"><span id="ann">กำลังโหลด...</span></div>
+<header>
+  <img id="logo" alt="โลโก้แคลน">
+  <h1 id="cname"></h1>
+</header>
+
+<main id="app" class="hide">
+  <div class="top"><span><img id="avatar" alt=""><b id="me"></b></span></div>
+
+  <section><h2>ของรางวัล</h2><div class="grid" id="rewards"></div></section>
+
+  <section><h2>แนะนำตัว</h2><div class="box">
+    <div class="row"><input id="f_real" placeholder="ชื่อจริง"><input id="f_nick" placeholder="ชื่อเล่น"></div>
+    <div class="row"><input id="f_ff" placeholder="ชื่อในเกมฟรีไฟร์"><input id="f_uid" placeholder="UID ฟรีไฟร์" inputmode="numeric"></div>
+    <button onclick="saveIntro()">แนะนำตัว</button> <span id="iok"></span>
+  </div></section>
+
+  <section><h2>กล่องจดหมาย</h2><div class="box" id="inbox">ไม่มีข้อความ</div></section>
+
+  <section id="admin" class="hide"><h2>หัวหน้าแคลน</h2><div class="box">
+    <b>เพิ่มของรางวัล</b>
+    <input id="r_title" placeholder="ชื่อของรางวัล">
+    <input id="r_img" placeholder="ลิงก์รูปภาพ">
+    <input id="r_hours" type="number" step="any" min="0" placeholder="หมดอายุในกี่ชั่วโมง">
+    <button onclick="addReward()">เพิ่มการ์ด</button>
+    <hr style="border-color:var(--line);margin:16px 0">
+    <b>ข้อความวิ่งด้านบน</b>
+    <input id="a_txt" placeholder="ข้อความกิจกรรม">
+    <button onclick="setAnn()">บันทึกข้อความ</button>
+    <hr style="border-color:var(--line);margin:16px 0">
+    <b>ส่งจดหมายหาสมาชิก</b>
+    <input id="m_to" placeholder="ชื่อผู้ใช้ผู้รับ">
+    <textarea id="m_body" rows="3" placeholder="ข้อความ"></textarea>
+    <input id="m_link" placeholder="ลิงก์ (ไม่ใส่ก็ได้)">
+    <button onclick="sendMsg()">ส่งจดหมาย</button> <span id="mok"></span>
+  </div></section>
+</main>
+
+<script>
+/* ===== ค่าเดียวกับร้านอื่นๆ (ดึงมาจากไฟล์เดิม) ===== */
+const CONFIG = {
+  SUPABASE_URL: 'https://ztkqtvdllpzjsvlqxzni.supabase.co',
+  SUPABASE_ANON_KEY: 'sb_publishable_BkDeJmZYwMys8OP4eMkpVQ_F6hrJ35t',
+  MAIN_SITE_URL: 'https://suphasan887-beep.github.io/index.html/',
+  DISCORD_WEBHOOK_URL: 'https://discord.com/api/webhooks/1547148610289008660/2uvF95O2vsz_slW7yqJ2jukhAeMwg0lkdayaOsY2hfKZvh3J3IBxiooJCLR-agKT5g8t',
+  CLAN_NAME: 'ชื่อแคลนของคุณ',
+  CLAN_LOGO: '' // ลิงก์รูปโลโก้
+};
+const TOKEN_KEY = 'main_access_token';
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let db = null, authToken = null, user = null, isAdmin = false, rewards = [], myClaims = new Set();
+
+$("cname").textContent = CONFIG.CLAN_NAME; document.title = CONFIG.CLAN_NAME;
+if (CONFIG.CLAN_LOGO) $("logo").src = CONFIG.CLAN_LOGO; else $("logo").style.display = "none";
+
+const baseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+
+/* รับโทเค็นจากหน้าหลัก: #at=<access_token> */
+async function getToken() {
+  const h = new URLSearchParams(location.hash.replace(/^#/, ''));
+  const t = h.get('at');
+  if (t) {
+    try { sessionStorage.setItem(TOKEN_KEY, t); } catch (e) {}
+    history.replaceState(null, '', location.pathname + location.search); // ลบโทเค็นออกจาก URL
+    return t;
+  }
+  try { const s = sessionStorage.getItem(TOKEN_KEY); if (s) return s; } catch (e) {}
+  const { data } = await baseClient.auth.getSession();
+  return data?.session?.access_token || null;
+}
+
+function pngUrl(url, name) {
+  const fb = 'https://api.dicebear.com/7.x/bottts/png?seed=' + encodeURIComponent(name);
+  if (!url || !/^https:\/\//.test(url)) return fb;
+  if (/dicebear\.com\/[^/]+\/svg/.test(url)) return url.replace('/svg', '/png');
+  return /\.svg(\?|$)/i.test(url) ? fb : url;
+}
+async function hook(embed) {
+  try { await fetch(CONFIG.DISCORD_WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ allowed_mentions: { parse: [] }, embeds: [embed] }) }); } catch (e) { console.error(e); }
+}
+
+function needLogin() {
+  try { sessionStorage.removeItem(TOKEN_KEY); } catch (e) {}
+  $("gate").classList.remove("hide");
+}
+
+async function boot() {
+  authToken = await getToken();
+  if (!authToken) return needLogin();
+  const { data: { user: u }, error } = await baseClient.auth.getUser(authToken);
+  if (error || !u) return needLogin();
+  db = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, { global: { headers: { Authorization: 'Bearer ' + authToken } } });
+  const { data: p } = await db.from('profiles').select('username, avatar_url').eq('id', u.id).maybeSingle();
+  user = { id: u.id, username: p?.username || u.user_metadata?.username || u.email?.split('@')[0] || 'ผู้ใช้', avatar: p?.avatar_url || '' };
+  const { data: ad } = await db.from("admins").select("user_id").eq("user_id", u.id).maybeSingle();
+  isAdmin = !!ad;
+
+  $("app").classList.remove("hide");
+  $("me").textContent = user.username;
+  if (user.avatar) $("avatar").src = user.avatar; else $("avatar").style.display = "none";
+  if (isAdmin) $("admin").classList.remove("hide");
+  const { data: m } = await db.from("clan_members").select("*").eq("user_id", u.id).maybeSingle();
+  if (m) { $("f_real").value = m.real_name || ""; $("f_nick").value = m.nickname || ""; $("f_ff").value = m.ff_name || ""; $("f_uid").value = m.ff_uid || ""; }
+  loadAnn(); loadRewards(); loadInbox();
+}
+
+async function loadAnn() {
+  const { data } = await db.from("announcements").select("text").eq("id", 1).maybeSingle();
+  $("ann").textContent = data?.text || "";
+  $("a_txt").value = data?.text || "";
+}
+async function setAnn() { await db.from("announcements").update({ text: $("a_txt").value }).eq("id", 1); loadAnn(); }
+
+async function loadRewards() {
+  const [r, c] = await Promise.all([
+    db.from("rewards").select("*").order("created_at", { ascending: false }),
+    db.from("claims").select("reward_id").eq("user_id", user.id)
+  ]);
+  rewards = r.data || []; myClaims = new Set((c.data || []).map(x => x.reward_id));
+  $("rewards").innerHTML = rewards.length ? rewards.map(x => `
+    <div class="rc"><img src="${esc(x.image_url)}" alt=""><div>
+      <b>${esc(x.title)}</b><div class="time" id="t${x.id}"></div>
+      <button id="b${x.id}" onclick="claim(${x.id})">กดรับ</button>
+      ${isAdmin ? `<button class="alt" style="margin-top:6px" onclick="delReward(${x.id})">ลบการ์ด</button>` : ""}
+    </div></div>`).join("") : "<div class='box'>ยังไม่มีของรางวัล</div>";
+  tick();
+}
+function tick() {
+  const now = Date.now();
+  rewards.forEach(x => {
+    const t = $("t" + x.id), b = $("b" + x.id); if (!t) return;
+    const left = new Date(x.expires_at) - now;
+    if (myClaims.has(x.id)) { t.textContent = "คุณรับแล้ว"; b.disabled = true; b.textContent = "รับแล้ว"; }
+    else if (left <= 0) { t.textContent = "หมดเวลาแล้ว"; b.disabled = true; b.textContent = "หมดอายุแล้ว"; }
+    else {
+      const s = Math.floor(left / 1000), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), sec = s % 60;
+      t.textContent = "เหลือ " + [h, m, sec].map(n => String(n).padStart(2, "0")).join(":");
+      b.disabled = false; b.textContent = "กดรับ";
+    }
+  });
+}
+setInterval(tick, 1000);
+
+async function claim(id) {
+  const x = rewards.find(r => r.id === id);
+  if (!x || new Date(x.expires_at) <= Date.now() || myClaims.has(id)) return;
+  const { error } = await db.from("claims").insert({ reward_id: id, user_id: user.id, username: user.username });
+  myClaims.add(id); tick();
+  if (error) return;
+  hook({ title: "🎁 มีคนกดรับของรางวัล", description: `**${user.username}** กดรับ **${x.title || "ของรางวัล"}** แล้ว`, color: 0xff7a1a,
+    image: { url: x.image_url }, thumbnail: { url: pngUrl(user.avatar, user.username) },
+    fields: [{ name: "User ID", value: "`" + user.id + "`" }], timestamp: new Date().toISOString() });
+}
+async function addReward() {
+  const h = parseFloat($("r_hours").value);
+  if (!$("r_img").value || !(h > 0)) return alert("ใส่ลิงก์รูปและจำนวนชั่วโมง");
+  await db.from("rewards").insert({ title: $("r_title").value, image_url: $("r_img").value.trim(), expires_at: new Date(Date.now() + h * 3600e3).toISOString() });
+  ["r_title", "r_img", "r_hours"].forEach(i => $(i).value = ""); loadRewards();
+}
+async function delReward(id) { if (confirm("ลบการ์ดนี้?")) { await db.from("rewards").delete().eq("id", id); loadRewards(); } }
+
+async function saveIntro() {
+  const v = { user_id: user.id, real_name: $("f_real").value, nickname: $("f_nick").value, ff_name: $("f_ff").value, ff_uid: $("f_uid").value, updated_at: new Date().toISOString() };
+  const { error } = await db.from("clan_members").upsert(v);
+  if (error) return $("iok").textContent = "บันทึกไม่สำเร็จ";
+  $("iok").textContent = "บันทึกแล้ว ✓";
+  hook({ title: "👤 สมาชิกแนะนำตัว", color: 0xffc247, thumbnail: { url: pngUrl(user.avatar, user.username) }, fields: [
+    { name: "ชื่อผู้ใช้", value: user.username, inline: true }, { name: "ชื่อจริง", value: v.real_name || "-", inline: true },
+    { name: "ชื่อเล่น", value: v.nickname || "-", inline: true }, { name: "ชื่อในเกม", value: v.ff_name || "-", inline: true },
+    { name: "UID ฟรีไฟร์", value: v.ff_uid || "-", inline: true }, { name: "User ID", value: "`" + user.id + "`" }], timestamp: new Date().toISOString() });
+}
+
+async function loadInbox() {
+  const { data } = await db.from("messages").select("*").eq("to_username", user.username).order("created_at", { ascending: false });
+  if (!data?.length) return;
+  $("inbox").innerHTML = data.map(m => `<div class="msg"><small>${esc(m.from_name)} · ${new Date(m.created_at).toLocaleString("th-TH")}</small><div>${esc(m.body)}</div>
+    ${/^https?:\/\//.test(m.link || "") ? `<a href="${esc(m.link)}" target="_blank" rel="noopener">เปิดลิงก์</a>` : ""}</div>`).join("");
+}
+async function sendMsg() {
+  const to = $("m_to").value.trim();
+  if (!to || !$("m_body").value.trim()) return $("mok").textContent = "ใส่ชื่อผู้รับและข้อความ";
+  const { error } = await db.from("messages").insert({ to_username: to, from_name: user.username, body: $("m_body").value, link: $("m_link").value.trim() || null });
+  $("mok").textContent = error ? "ส่งไม่สำเร็จ" : "ส่งแล้ว ✓";
+  if (!error) { $("m_body").value = ""; $("m_link").value = ""; }
+}
+
+boot();
+</script>
+</body>
+</html>
