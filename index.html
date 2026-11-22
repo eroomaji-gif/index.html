@@ -115,7 +115,7 @@ const TOKEN_KEY = 'main_access_token';
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-let db = null, authToken = null, user = null, isAdmin = false, rewards = [], myClaims = new Set();
+let db = null, authToken = null, user = null, isAdmin = false, rewards = [], taken = {}; // taken[reward_id] = {user_id, username}
 
 $("cname").textContent = CONFIG.CLAN_NAME; document.title = CONFIG.CLAN_NAME;
 if (CONFIG.CLAN_BG) $("bg").style.backgroundImage = "url('" + CONFIG.CLAN_BG + "')";
@@ -180,11 +180,9 @@ async function loadAnn() {
 async function setAnn() { await db.from("announcements").update({ text: $("a_txt").value }).eq("id", 1); loadAnn(); }
 
 async function loadRewards() {
-  const [r, c] = await Promise.all([
-    db.from("rewards").select("*").order("created_at", { ascending: false }),
-    db.from("claims").select("reward_id").eq("user_id", user.id)
-  ]);
-  rewards = r.data || []; myClaims = new Set((c.data || []).map(x => x.reward_id));
+  const r = await db.from("rewards").select("*").order("created_at", { ascending: false });
+  rewards = r.data || [];
+  await loadClaims();
   $("rewards").innerHTML = rewards.length ? rewards.map(x => `
     <div class="rc"><img src="${esc(x.image_url)}" alt=""><div>
       <b>${esc(x.title)}</b><div class="time" id="t${x.id}"></div>
@@ -193,12 +191,20 @@ async function loadRewards() {
     </div></div>`).join("") : "<div class='box'>ยังไม่มีของรางวัล</div>";
   tick();
 }
+async function loadClaims() {
+  const { data } = await db.from("claims").select("reward_id, user_id, username");
+  if (!data) return;
+  taken = {}; data.forEach(c => taken[c.reward_id] = c);
+  tick();
+}
+setInterval(() => { if (db) loadClaims(); }, 4000); // เช็กทุก 4 วินาที ใครรับแล้วคนอื่นเห็นทันที
 function tick() {
   const now = Date.now();
   rewards.forEach(x => {
     const t = $("t" + x.id), b = $("b" + x.id); if (!t) return;
     const left = new Date(x.expires_at) - now;
-    if (myClaims.has(x.id)) { t.textContent = "คุณรับแล้ว"; b.disabled = true; b.textContent = "รับแล้ว"; }
+    const c = taken[x.id];
+    if (c) { t.textContent = c.user_id === user.id ? "คุณเป็นคนรับ" : "รับโดย " + c.username; b.disabled = true; b.textContent = "ถูกรับแล้ว"; }
     else if (left <= 0) { t.textContent = "หมดเวลาแล้ว"; b.disabled = true; b.textContent = "หมดอายุแล้ว"; }
     else {
       const s = Math.floor(left / 1000), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), sec = s % 60;
@@ -211,14 +217,15 @@ setInterval(tick, 1000);
 
 async function claim(id) {
   const x = rewards.find(r => r.id === id);
-  if (!x || new Date(x.expires_at) <= Date.now() || myClaims.has(id)) return;
+  if (!x || new Date(x.expires_at) <= Date.now() || taken[id]) return;
   const { error } = await db.from("claims").insert({ reward_id: id, user_id: user.id, username: user.username });
-  myClaims.add(id); tick();
-  if (error) return;
+  if (error) { await loadClaims(); return showLate(); } // มีคนรับตัดหน้าไปแล้ว
+  taken[id] = { user_id: user.id, username: user.username }; tick();
   hook({ title: "🎁 มีคนกดรับของรางวัล", description: `**${user.username}** กดรับ **${x.title || "ของรางวัล"}** แล้ว`, color: 0xff7a1a,
     image: { url: x.image_url }, thumbnail: { url: pngUrl(user.avatar, user.username) },
     fields: [{ name: "User ID", value: "`" + user.id + "`" }], timestamp: new Date().toISOString() });
 }
+function showLate() { alert("ช้าไปนิด มีคนรับไปแล้ว"); }
 async function addReward() {
   const h = parseFloat($("r_hours").value);
   if (!$("r_img").value || !(h > 0)) return alert("ใส่ลิงก์รูปและจำนวนชั่วโมง");
