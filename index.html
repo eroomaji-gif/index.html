@@ -47,6 +47,11 @@ a{color:var(--ac2)}
 .nav.l{left:8px}.nav.r{right:8px}
 .del{position:absolute;top:8px;right:8px;padding:4px 10px;background:rgba(0,0,0,.65);color:#fff}
 .desc{white-space:pre-wrap;margin:0 0 12px}
+.codebox{font-size:1.6rem;font-weight:800;letter-spacing:.08em;text-align:center;color:var(--ac2);background:var(--bg);border:2px dashed var(--ac);border-radius:10px;padding:14px;margin-bottom:10px;word-break:break-all}
+.plus{width:72px;height:72px;border:2px dashed var(--ac);color:var(--ac);font-size:2rem;border-radius:10px;padding:0;background:transparent center/cover no-repeat;margin-bottom:8px}
+.mlist{max-height:180px;overflow:auto;border:1px solid var(--line);border-radius:8px;margin-bottom:8px}
+.mem{display:block;width:100%;text-align:left;background:transparent;color:var(--tx);border:0;border-bottom:1px solid var(--line);border-radius:0;font-weight:400}
+.mem.on{background:var(--ac);color:#1a0e04;font-weight:600}
 #bg{position:fixed;inset:-8%;z-index:-1;background:center/cover no-repeat;filter:blur(3px);animation:drift 24s ease-in-out infinite alternate}
 #bgveil{position:fixed;inset:0;z-index:-1;background:rgba(20,17,15,.6)}
 @keyframes drift{0%{transform:scale(1.08) translate(-2.5%,-1.5%)}100%{transform:scale(1.14) translate(2.5%,1.5%)}}
@@ -83,6 +88,17 @@ body *:not(#user-uid):not(input):not(textarea) {
 <main id="app" class="hide">
   <div class="top"><span><img id="avatar" alt=""><b id="me"></b></span></div>
 
+  <section id="codeSec"><h2>โค้ดฟรีฟาย</h2><div class="box">
+    <div class="codebox" id="ffcode">-</div>
+    <p class="desc" id="ffdesc"></p>
+    <div class="row"><button onclick="copyCode(this)">คัดลอกโค้ด</button><button class="alt" onclick="openRedeem()">ใช้งานโค้ด</button></div>
+    <div id="codeAdmin" class="hide" style="margin-top:12px">
+      <input id="code_in" placeholder="โค้ดฟรีฟาย">
+      <textarea id="code_desc" rows="3" placeholder="อธิบายว่าโค้ดนี้ได้อะไร"></textarea>
+      <button onclick="saveCode()">บันทึกโค้ด</button> <span id="cok"></span>
+    </div>
+  </div></section>
+
   <section><h2>ของรางวัล</h2><div class="grid" id="rewards"></div></section>
 
   <div id="sections"></div>
@@ -97,8 +113,15 @@ body *:not(#user-uid):not(input):not(textarea) {
   <section id="admin" class="hide"><h2>หัวหน้าแคลน</h2><div class="box">
     <b>เพิ่มของรางวัล</b>
     <input id="r_title" placeholder="ชื่อของรางวัล">
-    <input id="r_img" placeholder="ลิงก์รูปภาพ">
-    <input id="r_hours" type="number" step="any" min="0" placeholder="หมดอายุในกี่ชั่วโมง">
+    <button class="plus" id="r_plus" type="button" aria-label="เพิ่มรูปของรางวัล" onclick="$('r_file').click()">+</button>
+    <input id="r_file" type="file" accept="image/*" class="hide" onchange="pickRewardImg(this)">
+    <div style="margin-bottom:4px;color:var(--mut)">หมดอายุใน</div>
+    <div class="row" style="flex-wrap:nowrap">
+      <input id="r_d" type="number" min="0" inputmode="numeric" placeholder="วัน" style="min-width:0">
+      <input id="r_h" type="number" min="0" inputmode="numeric" placeholder="ชม." style="min-width:0">
+      <input id="r_m" type="number" min="0" inputmode="numeric" placeholder="นาที" style="min-width:0">
+      <input id="r_s" type="number" min="0" inputmode="numeric" placeholder="วินาที" style="min-width:0">
+    </div>
     <button onclick="addReward()">เพิ่มการ์ด</button>
     <hr style="border-color:var(--line);margin:16px 0">
     <b>ข้อความวิ่งด้านบน</b>
@@ -106,7 +129,9 @@ body *:not(#user-uid):not(input):not(textarea) {
     <button onclick="setAnn()">บันทึกข้อความ</button>
     <hr style="border-color:var(--line);margin:16px 0">
     <b>ส่งจดหมายหาสมาชิก</b>
-    <input id="m_to" placeholder="ชื่อผู้ใช้ผู้รับ">
+    <input id="m_find" placeholder="ค้นหาชื่อสมาชิก" oninput="renderMembers()">
+    <div class="mlist" id="m_list"></div>
+    <div id="m_sel" style="margin-bottom:8px;color:var(--ac2)">แตะชื่อเพื่อเลือกผู้รับ</div>
     <textarea id="m_body" rows="3" placeholder="ข้อความ"></textarea>
     <input id="m_link" placeholder="ลิงก์ (ไม่ใส่ก็ได้)">
     <button onclick="sendMsg()">ส่งจดหมาย</button> <span id="mok"></span>
@@ -120,6 +145,7 @@ const CONFIG = {
   SUPABASE_ANON_KEY: 'sb_publishable_BkDeJmZYwMys8OP4eMkpVQ_F6hrJ35t',
   MAIN_SITE_URL: 'https://suphasan887-beep.github.io/index.html/',
   DISCORD_WEBHOOK_URL: 'https://discord.com/api/webhooks/1574031677825622127/w-tF049AdY8b3p_qnavP9jIJrkK0DhfaUbh2xoZo5FLo-x3U54DoR5MI44QZSjiNG9kc',
+  REDEEM_URL: 'https://reward.ff.garena.com/', // ลิงก์เว็บใช้งานโค้ด (แก้ได้)
   CLAN_NAME: 'เลื้อน™',
   CLAN_LOGO: 'https://i.ibb.co/LdxVwn0D/10901-1.png', // ลิงก์รูปโลโก้
   CLAN_BG: 'https://i.ibb.co/LdxVwn0D/10901-1.png'    // ลิงก์รูปปกหลัง (เปลี่ยนตรงนี้ได้)
@@ -182,7 +208,7 @@ async function boot() {
   if (isAdmin) $("admin").classList.remove("hide");
   const { data: m } = await db.from("clan_members").select("*").eq("user_id", u.id).maybeSingle();
   if (m) { $("f_nick").value = m.nickname || ""; $("f_ff").value = m.ff_name || ""; $("f_uid").value = m.ff_uid || ""; }
-  loadAnn(); loadRewards(); loadInbox(); loadSections();
+  loadAnn(); loadRewards(); loadInbox(); loadSections(); loadCode(); if (isAdmin) loadMembers();
 }
 
 async function loadAnn() {
@@ -220,8 +246,8 @@ function tick() {
     if (c) { t.textContent = c.user_id === user.id ? "คุณเป็นคนรับ" : "รับโดย " + c.username; b.disabled = true; b.textContent = "ถูกรับแล้ว"; }
     else if (left <= 0) { t.textContent = "หมดเวลาแล้ว"; b.disabled = true; b.textContent = "หมดอายุแล้ว"; }
     else {
-      const s = Math.floor(left / 1000), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), sec = s % 60;
-      t.textContent = "เหลือ " + [h, m, sec].map(n => String(n).padStart(2, "0")).join(":");
+      const s = Math.floor(left / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60), sec = s % 60;
+      t.textContent = "เหลือ " + (d ? d + " วัน " : "") + [h, m, sec].map(n => String(n).padStart(2, "0")).join(":");
       b.disabled = false; b.textContent = "กดรับ";
     }
   });
@@ -239,11 +265,21 @@ async function claim(id) {
     fields: [{ name: "User ID", value: "`" + user.id + "`" }], timestamp: new Date().toISOString() });
 }
 function showLate() { alert("ช้าไปนิด มีคนรับไปแล้ว"); }
+function pickRewardImg(inp) {
+  const f = inp.files[0]; if (!f) return;
+  $("r_plus").style.backgroundImage = "url('" + URL.createObjectURL(f) + "')"; $("r_plus").textContent = "";
+}
 async function addReward() {
-  const h = parseFloat($("r_hours").value);
-  if (!$("r_img").value || !(h > 0)) return alert("ใส่ลิงก์รูปและจำนวนชั่วโมง");
-  await db.from("rewards").insert({ title: $("r_title").value, image_url: $("r_img").value.trim(), expires_at: new Date(Date.now() + h * 3600e3).toISOString() });
-  ["r_title", "r_img", "r_hours"].forEach(i => $(i).value = ""); loadRewards();
+  const n = id => Math.max(0, parseInt($(id).value) || 0), f = $("r_file").files[0];
+  const secs = n("r_d") * 86400 + n("r_h") * 3600 + n("r_m") * 60 + n("r_s");
+  if (!f || secs <= 0) return alert("เลือกรูป (ปุ่ม +) และตั้งเวลาอย่างน้อย 1 วินาที");
+  const path = `rewards/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+  const up = await db.storage.from("clan-images").upload(path, await shrink(f), { contentType: "image/jpeg" });
+  if (up.error) return alert("อัปโหลดรูปไม่สำเร็จ: " + up.error.message);
+  const { data: { publicUrl } } = db.storage.from("clan-images").getPublicUrl(path);
+  await db.from("rewards").insert({ title: $("r_title").value, image_url: publicUrl, expires_at: new Date(Date.now() + secs * 1000).toISOString() });
+  ["r_title", "r_d", "r_h", "r_m", "r_s", "r_file"].forEach(i => $(i).value = "");
+  $("r_plus").style.backgroundImage = ""; $("r_plus").textContent = "+"; loadRewards();
 }
 async function delReward(id) { if (confirm("ลบการ์ดนี้?")) { await db.from("rewards").delete().eq("id", id); loadRewards(); } }
 
@@ -264,8 +300,8 @@ async function loadInbox() {
     ${/^https?:\/\//.test(m.link || "") ? `<a href="${esc(m.link)}" target="_blank" rel="noopener">เปิดลิงก์</a>` : ""}</div>`).join("");
 }
 async function sendMsg() {
-  const to = $("m_to").value.trim();
-  if (!to || !$("m_body").value.trim()) return $("mok").textContent = "ใส่ชื่อผู้รับและข้อความ";
+  const to = selectedTo;
+  if (!to || !$("m_body").value.trim()) return $("mok").textContent = "เลือกผู้รับและพิมพ์ข้อความ";
   const { error } = await db.from("messages").insert({ to_username: to, from_name: user.username, body: $("m_body").value, link: $("m_link").value.trim() || null });
   $("mok").textContent = error ? "ส่งไม่สำเร็จ" : "ส่งแล้ว ✓";
   if (!error) { $("m_body").value = ""; $("m_link").value = ""; }
@@ -330,6 +366,41 @@ async function delImg(id) {
   await db.storage.from('clan-images').remove([x.path]);
   await db.from('clan_images').delete().eq('id', id); loadSections();
 }
+
+/* ===== โค้ดฟรีฟาย ===== */
+async function loadCode() {
+  const { data } = await db.from("ff_code").select("*").eq("id", 1).maybeSingle();
+  const code = data?.code || "", desc = data?.description || "";
+  $("ffcode").textContent = code || "ยังไม่มีโค้ด"; $("ffdesc").textContent = desc;
+  $("code_in").value = code; $("code_desc").value = desc;
+  if (isAdmin) $("codeAdmin").classList.remove("hide");
+  else if (!code) $("codeSec").classList.add("hide");
+}
+async function saveCode() {
+  const { error } = await db.from("ff_code").update({ code: $("code_in").value.trim(), description: $("code_desc").value }).eq("id", 1);
+  $("cok").textContent = error ? "บันทึกไม่สำเร็จ" : "บันทึกแล้ว ✓"; if (!error) loadCode();
+}
+async function copyCode(btn) {
+  const c = $("ffcode").textContent; if (!c || c === "ยังไม่มีโค้ด") return;
+  try { await navigator.clipboard.writeText(c); } catch (e) { const t = document.createElement("textarea"); t.value = c; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); }
+  btn.textContent = "คัดลอกแล้ว ✓"; setTimeout(() => btn.textContent = "คัดลอกโค้ด", 1500);
+}
+function openRedeem() { if (CONFIG.REDEEM_URL) window.open(CONFIG.REDEEM_URL, "_blank", "noopener"); }
+
+/* ===== รายชื่อสมาชิกสำหรับส่งจดหมาย ===== */
+let members = [], selectedTo = "";
+async function loadMembers() {
+  const { data, error } = await db.rpc("member_list");
+  if (error) { $("m_list").innerHTML = "<small style='padding:8px;display:block'>โหลดรายชื่อไม่ได้ (รัน schema_codes.sql แล้วหรือยัง)</small>"; return; }
+  members = (data || []).map(x => x.username); renderMembers();
+}
+function renderMembers() {
+  const q = $("m_find").value.trim().toLowerCase();
+  $("m_list").innerHTML = members.filter(n => n.toLowerCase().includes(q)).map(n =>
+    `<button type="button" class="mem${n === selectedTo ? " on" : ""}" data-n="${esc(n)}" onclick="pickMember(this.dataset.n)">${esc(n)}</button>`).join("") || "<small style='padding:8px;display:block'>ไม่พบชื่อ</small>";
+  $("m_sel").textContent = selectedTo ? "ส่งถึง: " + selectedTo : "แตะชื่อเพื่อเลือกผู้รับ";
+}
+function pickMember(n) { selectedTo = n; renderMembers(); }
 
 boot();
 </script>
