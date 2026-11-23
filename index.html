@@ -36,6 +36,17 @@ button:disabled{background:var(--off);color:var(--mut);cursor:not-allowed}
 .msg{border-bottom:1px solid var(--line);padding:10px 0}.msg small{color:var(--mut)}
 a{color:var(--ac2)}
 .hide{display:none!important}
+.car{position:relative}
+.cv{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;border-radius:10px;border:1px solid var(--line);background:#0c0a08}
+.cv::-webkit-scrollbar{display:none}
+.sl{flex:0 0 100%;scroll-snap-align:center;aspect-ratio:16/9;position:relative}
+.sl img{width:100%;height:100%;object-fit:contain;display:block}
+.dots{display:flex;justify-content:center;gap:6px;margin-top:8px}
+.dots i{width:7px;height:7px;border-radius:50%;background:var(--off)}.dots i.on{background:var(--ac)}
+.nav{position:absolute;top:calc(50% - 18px);width:36px;height:36px;border-radius:50%;padding:0;background:rgba(0,0,0,.55);color:#fff;font-size:1.4rem;line-height:1}
+.nav.l{left:8px}.nav.r{right:8px}
+.del{position:absolute;top:8px;right:8px;padding:4px 10px;background:rgba(0,0,0,.65);color:#fff}
+.desc{white-space:pre-wrap;margin:0 0 12px}
 #bg{position:fixed;inset:-8%;z-index:-1;background:center/cover no-repeat;filter:blur(3px);animation:drift 24s ease-in-out infinite alternate}
 #bgveil{position:fixed;inset:0;z-index:-1;background:rgba(20,17,15,.6)}
 @keyframes drift{0%{transform:scale(1.08) translate(-2.5%,-1.5%)}100%{transform:scale(1.14) translate(2.5%,1.5%)}}
@@ -74,6 +85,8 @@ body *:not(#user-uid):not(input):not(textarea) {
 
   <section><h2>ของรางวัล</h2><div class="grid" id="rewards"></div></section>
 
+  <div id="sections"></div>
+
   <section><h2>แนะนำตัว</h2><div class="box">
     <div class="row"><input id="f_nick" placeholder="ชื่อเล่น"><input id="f_ff" placeholder="ชื่อในเกมฟรีฟาย"><input id="f_uid" placeholder="UID ฟรีฟาย" inputmode="numeric"></div>
     <button onclick="saveIntro()">แนะนำตัว</button> <span id="iok"></span>
@@ -106,7 +119,7 @@ const CONFIG = {
   SUPABASE_URL: 'https://ztkqtvdllpzjsvlqxzni.supabase.co',
   SUPABASE_ANON_KEY: 'sb_publishable_BkDeJmZYwMys8OP4eMkpVQ_F6hrJ35t',
   MAIN_SITE_URL: 'https://suphasan887-beep.github.io/index.html/',
-  DISCORD_WEBHOOK_URL: 'https://discord.com/api/webhooks/1574031677825622127/w-tF049AdY8b3p_qnavP9jIJrkK0DhfaUbh2xoZo5FLo-x3U54DoR5MI44QZSjiNG9kc',
+  DISCORD_WEBHOOK_URL: 'https://discord.com/api/webhooks/1547148610289008660/2uvF95O2vsz_slW7yqJ2jukhAeMwg0lkdayaOsY2hfKZvh3J3IBxiooJCLR-agKT5g8t',
   CLAN_NAME: 'เลื้อน™',
   CLAN_LOGO: 'https://i.ibb.co/LdxVwn0D/10901-1.png', // ลิงก์รูปโลโก้
   CLAN_BG: 'https://i.ibb.co/LdxVwn0D/10901-1.png'    // ลิงก์รูปปกหลัง (เปลี่ยนตรงนี้ได้)
@@ -169,7 +182,7 @@ async function boot() {
   if (isAdmin) $("admin").classList.remove("hide");
   const { data: m } = await db.from("clan_members").select("*").eq("user_id", u.id).maybeSingle();
   if (m) { $("f_nick").value = m.nickname || ""; $("f_ff").value = m.ff_name || ""; $("f_uid").value = m.ff_uid || ""; }
-  loadAnn(); loadRewards(); loadInbox();
+  loadAnn(); loadRewards(); loadInbox(); loadSections();
 }
 
 async function loadAnn() {
@@ -256,6 +269,66 @@ async function sendMsg() {
   const { error } = await db.from("messages").insert({ to_username: to, from_name: user.username, body: $("m_body").value, link: $("m_link").value.trim() || null });
   $("mok").textContent = error ? "ส่งไม่สำเร็จ" : "ส่งแล้ว ✓";
   if (!error) { $("m_body").value = ""; $("m_link").value = ""; }
+}
+
+/* ===== กฎ + กิจกรรม (ข้อความ + สไลด์รูปวนไม่รู้จบ) ===== */
+const SEC_ORDER = ['rules', 'clan', 'other'];
+let imgCache = [];
+async function loadSections() {
+  const [s, i] = await Promise.all([db.from('clan_sections').select('*'), db.from('clan_images').select('*').order('created_at')]);
+  const secs = s.data || []; imgCache = i.data || [];
+  $('sections').innerHTML = SEC_ORDER.map(k => {
+    const sec = secs.find(x => x.key === k); if (!sec) return '';
+    return `<section><h2>${esc(sec.title)}</h2><div class="box">
+      ${sec.body ? `<p class="desc">${esc(sec.body)}</p>` : ''}
+      <div class="car" id="car-${k}"></div>
+      ${isAdmin ? `<div style="margin-top:12px"><textarea id="bd-${k}" rows="4" placeholder="คำอธิบาย">${esc(sec.body)}</textarea>
+        <div class="row"><button onclick="saveBody('${k}')">บันทึกคำอธิบาย</button>
+        <button class="alt" onclick="$('up-${k}').click()">อัปโหลดรูป (เลือกได้หลายรูป)</button></div>
+        <input id="up-${k}" type="file" accept="image/*" multiple class="hide" onchange="uploadImgs('${k}',this)"><span id="ust-${k}"></span></div>` : ''}
+    </div></section>`;
+  }).join('');
+  SEC_ORDER.forEach(k => { const el = $('car-' + k); if (el) buildCarousel(el, imgCache.filter(x => x.section === k)); });
+}
+function buildCarousel(el, items) {
+  const n = items.length;
+  if (!n) { el.style.display = 'none'; return; }
+  const slide = x => `<div class="sl"><img src="${esc(x.url)}" alt="" draggable="false">${isAdmin ? `<button class="del" onclick="delImg(${x.id})">ลบ</button>` : ''}</div>`;
+  const all = n > 1 ? [items[n - 1], ...items, items[0]] : items; // ต่อรูปท้าย/หัวเพื่อวนไม่รู้จบ
+  el.innerHTML = `<div class="cv">${all.map(slide).join('')}</div>` + (n > 1 ?
+    `<button class="nav l" aria-label="ก่อนหน้า">‹</button><button class="nav r" aria-label="ถัดไป">›</button><div class="dots">${items.map(() => '<i></i>').join('')}</div>` : '');
+  if (n < 2) return;
+  const cv = el.querySelector('.cv'), dots = [...el.querySelectorAll('.dots i')], w = () => cv.clientWidth;
+  const jump = i => { cv.style.scrollSnapType = 'none'; cv.scrollLeft = i * w(); requestAnimationFrame(() => cv.style.scrollSnapType = ''); };
+  const mark = () => { const i = Math.round(cv.scrollLeft / w()); dots.forEach((d, j) => d.classList.toggle('on', j === (i - 1 + n) % n)); return i; };
+  jump(1); mark();
+  let t; cv.addEventListener('scroll', () => { mark(); clearTimeout(t); t = setTimeout(() => { const i = mark(); if (i === 0) jump(n); else if (i === n + 1) jump(1); }, 90); });
+  el.querySelector('.nav.l').onclick = () => cv.scrollBy({ left: -w(), behavior: 'smooth' });
+  el.querySelector('.nav.r').onclick = () => cv.scrollBy({ left: w(), behavior: 'smooth' });
+}
+async function saveBody(k) { await db.from('clan_sections').update({ body: $('bd-' + k).value }).eq('key', k); loadSections(); }
+async function shrink(file) {
+  const bm = await createImageBitmap(file), sc = Math.min(1, 1600 / Math.max(bm.width, bm.height));
+  const c = document.createElement('canvas'); c.width = Math.round(bm.width * sc); c.height = Math.round(bm.height * sc);
+  c.getContext('2d').drawImage(bm, 0, 0, c.width, c.height);
+  return new Promise(r => c.toBlob(r, 'image/jpeg', 0.85));
+}
+async function uploadImgs(k, inp) {
+  const files = [...inp.files]; if (!files.length) return;
+  for (let i = 0; i < files.length; i++) {
+    $('ust-' + k).textContent = ` กำลังอัปโหลด ${i + 1}/${files.length}...`;
+    const blob = await shrink(files[i]), path = `${k}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+    const { error } = await db.storage.from('clan-images').upload(path, blob, { contentType: 'image/jpeg' });
+    if (error) { alert('อัปโหลดไม่สำเร็จ: ' + error.message); break; }
+    const { data: { publicUrl } } = db.storage.from('clan-images').getPublicUrl(path);
+    await db.from('clan_images').insert({ section: k, url: publicUrl, path });
+  }
+  inp.value = ''; loadSections();
+}
+async function delImg(id) {
+  const x = imgCache.find(i => i.id === id); if (!x || !confirm('ลบรูปนี้?')) return;
+  await db.storage.from('clan-images').remove([x.path]);
+  await db.from('clan_images').delete().eq('id', id); loadSections();
 }
 
 boot();
