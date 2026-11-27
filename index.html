@@ -49,7 +49,17 @@ input:focus{border-color:var(--acc)}
 .sh h3,.gate h2{margin:0}.sh p,.gate p{margin:0;color:var(--mut);font-size:14px;min-height:1.3em}
 .gate .gi{font-size:40px}.gate b{color:var(--acc)}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#fff;color:#111;padding:9px 16px;border-radius:20px;z-index:99;font-size:14px;max-width:90vw}
+ /* บล็อกเคอร์เซอร์กระพริบและการคลุมดำเลือกข้อความทั้งหมด (ยกเว้นช่องกรอก UID) */
+body *:not(#user-uid):not(input):not(textarea) {
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none;    /* Firefox */
+    -ms-user-select: none;     /* IE/Edge */
+    user-select: none;         /* Standard */
+    -webkit-touch-callout: none; /* ป้องกันการกดค้างบนมือถือ */
+}
 </style></head><body><div id="app"></div>
+
+ 
 <script>
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const MAIN_URL='https://suphasan887-beep.github.io/index.html/',SB_URL='https://ztkqtvdllpzjsvlqxzni.supabase.co',SB_KEY='sb_publishable_BkDeJmZYwMys8OP4eMkpVQ_F6hrJ35t',BUCKET='videos',TK='main_access_token';
