@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="th"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>คลิปวิดีโอ</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b1020;--card:#151b2e;--ink:#eef1f7;--mut:#8b95ab;--acc:#fbbf24}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%}
+body{font:16px/1.4 Sarabun,sans-serif;color:var(--ink);background:radial-gradient(120% 60% at 50% 0,#1e2a52,var(--bg)) fixed;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+button{font:inherit;color:inherit;border:0;cursor:pointer;background:#ffffff1f;border-radius:10px;padding:10px 14px}
+button.pri{background:var(--acc);color:#1b1300;font-weight:600}
+input{font:inherit;width:100%;padding:12px 14px;border-radius:12px;border:1px solid #ffffff26;background:#ffffff12;color:var(--ink);outline:0}
+input:focus{border-color:var(--acc)}
+.hidden{display:none!important}
+.wrap{max-width:720px;margin:0 auto;padding:14px 14px 40px}
+.top{display:flex;align-items:center;gap:10px}
+.av{width:44px;height:44px;flex:none;border-radius:50%;border:2px solid var(--acc);overflow:hidden;display:grid;place-items:center;background:#334;font-weight:600}
+.av img{width:100%;height:100%;object-fit:cover}
+.pill{flex:1;min-width:0;padding:8px 14px;border-radius:99px;background:#ffffff14;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.add{width:44px;height:44px;padding:0;border-radius:50%;background:var(--acc);color:#1b1300;font-size:26px;font-weight:600;line-height:1}
+.sb{position:relative;margin:18px 0 14px}
+.sb input{padding:13px 66px 13px 18px;border-radius:99px}
+.sb button{position:absolute;right:6px;top:11px;bottom:11px;width:50px;padding:0;background:none;border-left:1px solid #ffffff33;border-radius:0;display:grid;place-items:center;color:var(--acc)}
+.tr{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding-bottom:4px}
+.tr::-webkit-scrollbar{display:none}
+.cd{flex:0 0 84%;scroll-snap-align:center;background:var(--card);border-radius:18px;overflow:hidden;position:relative;cursor:pointer;box-shadow:0 8px 24px #0006}
+.cd video{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:#000;pointer-events:none}
+.cd .n{position:absolute;top:10px;left:10px;min-width:30px;height:30px;padding:0 9px;border-radius:99px;background:var(--acc);color:#1b1300;font-weight:600;display:grid;place-items:center}
+.cd .pl{position:absolute;left:50%;top:calc(50% - 22px);transform:translate(-50%,-50%);width:52px;height:52px;border-radius:50%;background:#000a;display:grid;place-items:center;font-style:normal;padding-left:3px}
+.cd b{display:block;padding:10px 14px 12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gd{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.gd .cd{flex:none}.gd .cd b{padding:8px 10px 10px;font-size:14px}.gd .cd .pl{width:40px;height:40px;top:calc(50% - 16px)}
+.st{display:block;font-style:normal;padding:0 14px 10px;color:var(--mut);font-size:13px}.cd b{padding-bottom:2px}.gd .cd b{padding-bottom:2px}.gd .st{padding:0 10px 8px;font-size:12px}
+.act{display:flex;gap:8px;align-items:center;padding:8px 12px;background:#000;color:var(--mut);font-size:14px}.act span{flex:1}.act #lk.on{color:#fb7185}
+.cm{position:absolute;left:0;right:0;bottom:0;height:68%;z-index:3;background:var(--card);border-radius:18px 18px 0 0;display:flex;flex-direction:column;box-shadow:0 -10px 30px #0008}
+.ch{display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid #ffffff1a}.ch b{flex:1}
+.cl{flex:1;overflow-y:auto;padding:6px 14px}.ct{display:flex;gap:10px;padding:10px 0}.ct .av{width:34px;height:34px;font-size:14px}
+.cb{flex:1;min-width:0}.cb small{color:var(--mut)}.cb p{margin:2px 0 0;word-break:break-word;white-space:pre-wrap;font-size:15px}.cb .d{margin-top:6px;padding:6px 10px;font-size:13px;color:#fca5a5}
+.cf{display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));border-top:1px solid #ffffff1a}.cf input{flex:1}
+.empty{text-align:center;color:var(--mut);padding:40px 16px}
+.pm{position:fixed;inset:0;z-index:60;background:#000;display:flex;flex-direction:column}
+.pm video{flex:1;min-height:0;width:100%;background:#000;object-fit:contain}
+.bar{display:flex;gap:8px;align-items:center;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:#000}
+.bar b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar .d{color:#fca5a5}
+.sh,.gate{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:16px;background:#000a;backdrop-filter:blur(4px)}
+.sh>div,.gate>div{width:min(340px,100%);background:var(--card);border:1px solid #ffffff1f;border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:10px;text-align:center}
+.sh h3,.gate h2{margin:0}.sh p,.gate p{margin:0;color:var(--mut);font-size:14px;min-height:1.3em}
+.gate .gi{font-size:40px}.gate b{color:var(--acc)}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#fff;color:#111;padding:9px 16px;border-radius:20px;z-index:99;font-size:14px;max-width:90vw}
+</style></head><body><div id="app"></div>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const MAIN_URL='https://suphasan887-beep.github.io/index.html/',SB_URL='https://ztkqtvdllpzjsvlqxzni.supabase.co',SB_KEY='sb_publishable_BkDeJmZYwMys8OP4eMkpVQ_F6hrJ35t',BUCKET='videos',TK='main_access_token';
+let db,user,isAdmin=false,vids=[],liked=new Set(),q='',pause=0,tm;
+const toast=m=>{let t=$('#toast');if(!t){t=document.createElement('div');t.id='toast';document.body.appendChild(t)}t.textContent=m;t.hidden=false;clearTimeout(tm);tm=setTimeout(()=>t.hidden=true,2800)};
+/* ---- รับโทเค็นจากหน้าหลัก (#at=...) ---- */
+const jwtExp=t=>{try{return JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).exp*1000}catch(e){return 0}};
+const drop=()=>{try{sessionStorage.removeItem(TK)}catch(e){}};
+function takeToken(){let t=new URLSearchParams(location.hash.slice(1)).get('at');
+ if(t){try{sessionStorage.setItem(TK,t)}catch(e){}history.replaceState(null,'',location.pathname+location.search)}
+ else{try{t=sessionStorage.getItem(TK)}catch(e){}}return t}
+function gate(k){const T=k==='direct'?['เข้าจากหน้าหลักเท่านั้น','หน้านี้ต้องกดเข้ามาจากหน้าหลักของเรา']:['โทเค็นหมดอายุ','กลับไปที่หน้าหลักแล้วกดเข้าใหม่อีกครั้ง'];let n=5;
+ const d=document.createElement('div');d.className='gate';d.innerHTML=`<div><div class="gi">${k==='direct'?'🔒':'⏱'}</div><h2>${T[0]}</h2><p>${T[1]}</p><p id="gc"></p><button class="pri" id="gb">กลับหน้าหลัก</button></div>`;document.body.appendChild(d);
+ const go=()=>location.replace(MAIN_URL),c=$('#gc'),p=()=>c.innerHTML='จะพากลับใน <b>'+n+'</b> วินาที';p();$('#gb').onclick=go;setInterval(()=>{--n<=0?go():p()},1000)}
+const mk=t=>supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},...(t?{global:{headers:{Authorization:'Bearer '+t}}}:{})});
+(async()=>{const t=takeToken();if(!t)return gate('direct');
+ if(jwtExp(t)<Date.now()+5000){drop();return gate('expired')}
+ const{data,error}=await mk().auth.getUser(t);if(error||!data.user){drop();return gate('expired')}
+ const u=data.user;db=mk(t);
+ const[{data:p},{data:ad}]=await Promise.all([db.from('profiles').select('username,avatar_url').eq('id',u.id).maybeSingle(),db.from('admins').select('user_id').eq('user_id',u.id).maybeSingle()]);
+ user={id:u.id,name:p?.username||u.user_metadata?.username||u.email?.split('@')[0]||'ผู้ใช้',av:p?.avatar_url||''};isAdmin=!!ad;
+ draw();load();autoplay()})();
+/* ---- หน้าหลัก ---- */
+function draw(){$('#app').innerHTML=`<div class="wrap"><div class="top"><div class="av">${user.av?`<img src="${esc(user.av)}" alt="">`:esc(user.name.charAt(0).toUpperCase())}</div><div class="pill">${esc(user.name)}</div>${isAdmin?'<button class="add" id="ad" aria-label="เพิ่มวิดีโอ">+</button>':''}</div>
+<div class="sb"><input id="q" placeholder="ค้นหาชื่อคลิป" enterkeyhint="search" autocomplete="off"><button id="qb" aria-label="ค้นหา"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></div>
+<div class="tr" id="tr"></div><div class="gd" id="gd"></div></div>`;
+ const s=()=>{q=$('#q').value.trim().toLowerCase();render()};
+ $('#q').oninput=s;$('#q').onkeydown=e=>{if(e.key==='Enter'){s();e.target.blur()}};$('#qb').onclick=s;
+ if(isAdmin)$('#ad').onclick=addSheet;
+ const tr=$('#tr');['pointerdown','wheel','touchstart'].forEach(ev=>tr.addEventListener(ev,()=>pause=Date.now()+8000,{passive:true}));
+ [tr,$('#gd')].forEach(x=>x.onclick=e=>{const c=e.target.closest('.cd');if(c)play(c.dataset.id)})}
+async function load(){const[a,l]=await Promise.all([db.from('videos').select('*').order('created_at',{ascending:true}),db.from('video_likes').select('video_id')]);
+ if(a.error)toast('โหลดวิดีโอไม่สำเร็จ: '+a.error.message);vids=a.data||[];liked=new Set((l.data||[]).map(x=>x.video_id));render()}
+const fmt=n=>{n=n||0;return n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'K':n};
+const ago=s=>{const d=(Date.now()-new Date(s))/1000;return d<60?'เมื่อสักครู่':d<3600?Math.floor(d/60)+' นาที':d<86400?Math.floor(d/3600)+' ชม.':Math.floor(d/86400)+' วัน'};
+/* ไฮไลท์ = 3 คลิปยอดวิวสูงสุด (เท่ากันดูไลค์ แล้วดูคลิปที่ลงก่อน) ที่เหลือเป็นตารางคู่ ใหม่สุดก่อน / ตอนค้นหาโชว์เฉพาะตาราง */
+const card=(v,n)=>`<div class="cd" data-id="${v.id}"><video src="${esc(v.url)}#t=0.1" preload="metadata" muted playsinline></video>${n?`<span class="n">${n}</span>`:''}<i class="pl">▶</i><b>${esc(v.title)}</b><em class="st">👁 ${fmt(v.views)} · ♥ ${fmt(v.likes)}</em></div>`;
+function render(){const hl=q?[]:[...vids].sort((a,b)=>(b.views||0)-(a.views||0)||(b.likes||0)-(a.likes||0)||a.created_at.localeCompare(b.created_at)).slice(0,3),
+ rest=(q?vids.filter(v=>v.title.toLowerCase().includes(q)):vids.filter(v=>!hl.includes(v))).slice().reverse();
+ $('#tr').classList.toggle('hidden',!hl.length);$('#tr').innerHTML=hl.map((v,i)=>card(v,i+1)).join('');
+ $('#gd').innerHTML=rest.map(v=>card(v)).join('')||(hl.length?'':`<p class="empty" style="grid-column:1/-1">${q?'ไม่พบคลิปที่ค้นหา':isAdmin?'ยังไม่มีวิดีโอ กด + เพื่อเพิ่ม':'ยังไม่มีวิดีโอ'}</p>`);
+ $('#tr').scrollLeft=0}
+/* เลื่อนโชว์ทีละคลิปเอง หยุดเมื่อผู้ใช้แตะ/เปิดเล่น */
+function autoplay(){if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+ setInterval(()=>{const t=$('#tr'),c=t&&t.querySelector('.cd');if(!c||Date.now()<pause)return;
+  if(t.scrollLeft+t.clientWidth>=t.scrollWidth-6)t.scrollTo({left:0,behavior:'smooth'});else t.scrollBy({left:c.offsetWidth+12,behavior:'smooth'})},4000)}
+/* ---- เครื่องเล่น + ไลค์/วิว/คอมเมนต์ + ขยายเต็มจอ (แนวตั้ง/แนวนอนตามคลิป) ---- */
+function play(id){const v=vids.find(x=>x.id===id);if(!v)return;pause=Infinity;const m=document.createElement('div');m.className='pm';
+ m.innerHTML=`<video src="${esc(v.url)}" controls autoplay playsinline controlslist="nofullscreen nodownload" disablepictureinpicture></video><div class="act"><button id="lk"></button><span id="vc"></span><button id="cmb">💬 ความคิดเห็น</button></div><div class="bar"><button id="px">✕</button><b>${esc(v.title)}</b>${isAdmin?'<button class="d" id="pd">ลบ</button>':''}<button id="pf">⛶ ขยาย</button></div>`;
+ document.body.appendChild(m);const vd=m.querySelector('video');
+ const st=()=>{$('#lk').className=liked.has(id)?'on':'';$('#lk').textContent='♥ '+fmt(v.likes);$('#vc').textContent='👁 '+fmt(v.views)};st();
+ try{const k='v'+id;if(!sessionStorage.getItem(k)){sessionStorage.setItem(k,1);db.rpc('video_view',{p_id:id}).then(r=>{if(!r.error&&r.data!=null){v.views=r.data;st()}})}}catch(e){}
+ $('#lk').onclick=async()=>{if(liked.has(id))return toast('คุณกดไลค์คลิปนี้แล้ว');liked.add(id);v.likes=(v.likes||0)+1;st();
+  const r=await db.rpc('video_like',{p_id:id});if(r.error){liked.delete(id);v.likes--;st();return toast('กดไลค์ไม่สำเร็จ: '+r.error.message)}if(r.data!=null){v.likes=r.data;st()}};
+ $('#cmb').onclick=()=>comments(m,id);
+ const close=()=>{clearInterval(m.poll);if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});try{screen.orientation.unlock()}catch(e){}vd.pause();m.remove();pause=0;render()};
+ $('#px').onclick=close;$('#pf').onclick=async()=>{
+  if(document.fullscreenElement)return document.exitFullscreen();
+  try{if(m.requestFullscreen)await m.requestFullscreen();else if(m.webkitRequestFullscreen)m.webkitRequestFullscreen();else if(vd.webkitEnterFullscreen)return vd.webkitEnterFullscreen()}catch(e){}
+  try{await screen.orientation.lock((vd.videoWidth||v.w||1)>(vd.videoHeight||v.h||0)?'landscape':'portrait')}catch(e){}};
+ if(isAdmin)$('#pd').onclick=async()=>{if(!confirm('ลบวิดีโอนี้ถาวร?'))return;
+  const{error}=await db.from('videos').delete().eq('id',id);if(error)return toast('ลบไม่สำเร็จ: '+error.message);
+  await db.storage.from(BUCKET).remove([v.path]);vids=vids.filter(x=>x.id!==id);close();toast('ลบแล้ว')}}
+/* แผงคอมเมนต์เลื่อนขึ้นจากด้านล่าง: ทุกคนเห็น พิมพ์ได้ / แอดมินแตะข้อความแล้วกดลบ */
+function comments(m,id){if(m.querySelector('.cm'))return;const c=document.createElement('div');c.className='cm';let list=[],sel=null;
+ c.innerHTML='<div class="ch"><b id="cn"></b><button id="cx">✕</button></div><div class="cl" id="cl"></div><div class="cf"><input id="ci" maxlength="300" placeholder="เพิ่มความคิดเห็น..." autocomplete="off"><button class="pri" id="cs">ส่ง</button></div>';
+ m.appendChild(c);
+ const draw=()=>{$('#cn').textContent='ความคิดเห็น '+list.length;$('#cl').innerHTML=list.map(x=>`<div class="ct" data-id="${x.id}"><div class="av">${x.avatar_url?`<img src="${esc(x.avatar_url)}" alt="">`:esc((x.username||'?').charAt(0).toUpperCase())}</div><div class="cb"><small>${esc(x.username||'ผู้ใช้')} · ${ago(x.created_at)}</small><p>${esc(x.body)}</p>${isAdmin&&sel===x.id?`<button class="d" data-del="${x.id}">ลบข้อความนี้</button>`:''}</div></div>`).join('')||'<p class="empty">ยังไม่มีความคิดเห็น เป็นคนแรกเลย</p>'};
+ const ld=async()=>{const{data}=await db.from('video_comments').select('*').eq('video_id',id).order('created_at',{ascending:false}).limit(200);if(data){list=data;draw()}};
+ ld();m.poll=setInterval(ld,6000);
+ $('#cx').onclick=()=>{clearInterval(m.poll);c.remove()};
+ $('#cs').onclick=async()=>{const b=$('#ci').value.trim();if(!b)return;$('#ci').value='';
+  const{error}=await db.from('video_comments').insert({video_id:id,username:user.name,avatar_url:user.av||null,body:b});if(error)return toast('ส่งไม่สำเร็จ: '+error.message);ld()};
+ $('#ci').onkeydown=e=>{if(e.key==='Enter')$('#cs').click()};
+ $('#cl').onclick=async e=>{const d=e.target.closest('[data-del]');
+  if(d){if(!confirm('ลบข้อความนี้?'))return;const{error}=await db.from('video_comments').delete().eq('id',d.dataset.del);if(error)return toast('ลบไม่สำเร็จ: '+error.message);sel=null;return ld()}
+  const k=e.target.closest('.ct');if(isAdmin&&k){sel=sel===k.dataset.id?null:k.dataset.id;draw()}}}
+document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement)try{screen.orientation.unlock()}catch(e){}});
+/* ---- แอดมิน: เพิ่มวิดีโอ ---- */
+function addSheet(){const s=document.createElement('div');s.className='sh';
+ s.innerHTML='<div><h3>เพิ่มวิดีโอ</h3><input id="vf" type="file" accept="video/*"><input id="vt" placeholder="ชื่อคลิป" maxlength="120"><p id="vs"></p><button class="pri" id="vg">เพิ่มวิดีโอ</button><button id="vx">ยกเลิก</button></div>';
+ document.body.appendChild(s);s.onclick=e=>{if(e.target===s)s.remove()};$('#vx').onclick=()=>s.remove();$('#vg').onclick=()=>addVid(s)}
+async function addVid(s){const f=$('#vf').files[0],t=$('#vt').value.trim(),st=$('#vs'),b=$('#vg');
+ if(!f)return st.textContent='เลือกไฟล์วิดีโอก่อน';if(!t)return st.textContent='ตั้งชื่อคลิปก่อน';
+ b.disabled=true;st.textContent='กำลังอัปโหลด... ไฟล์ใหญ่อาจใช้เวลาสักครู่';
+ try{const dim=await new Promise(ok=>{const e=document.createElement('video');e.preload='metadata';e.onloadedmetadata=()=>{ok([e.videoWidth,e.videoHeight]);URL.revokeObjectURL(e.src)};e.onerror=()=>ok([0,0]);e.src=URL.createObjectURL(f)});
+  const ex=(f.name.split('.').pop()||'mp4').toLowerCase().replace(/[^a-z0-9]/g,'')||'mp4',path=Date.now()+'-'+Math.random().toString(36).slice(2,8)+'.'+ex;
+  const up=await db.storage.from(BUCKET).upload(path,f,{contentType:f.type||'video/mp4'});if(up.error)throw up.error;
+  const url=db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+  const{data,error}=await db.from('videos').insert({title:t,url,path,w:dim[0]||null,h:dim[1]||null}).select().single();
+  if(error){await db.storage.from(BUCKET).remove([path]);throw error}
+  vids.push(data);q='';$('#q').value='';s.remove();render();toast('เพิ่มวิดีโอแล้ว')}
+ catch(e){st.textContent='ไม่สำเร็จ: '+(e.message||e);b.disabled=false}}
+</script></body></html>
